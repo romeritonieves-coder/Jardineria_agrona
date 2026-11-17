@@ -359,3 +359,4 @@ public class PanelOficina extends JPanel {
         JOptionPane.showMessageDialog(this, mensaje, titulo, JOptionPane.ERROR_MESSAGE);
     }
 }
+

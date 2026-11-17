@@ -380,3 +380,4 @@ public class PanelPago extends JPanel {
         }
     }
 }
+
