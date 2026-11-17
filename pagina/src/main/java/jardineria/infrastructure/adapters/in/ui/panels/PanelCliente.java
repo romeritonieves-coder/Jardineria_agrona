@@ -72,8 +72,9 @@ public class PanelCliente extends JPanel {
 
     private void initComponents() {
         // Título del módulo
-        JLabel lblTitulo = new JLabel("Gestión de Clientes");
+        JLabel lblTitulo = new JLabel("👥 Gestión de Clientes");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitulo.setForeground(new Color(0x2E, 0xCC, 0x71));
         lblTitulo.setBorder(new EmptyBorder(0, 0, 10, 0));
         add(lblTitulo, BorderLayout.NORTH);
 
@@ -143,6 +144,7 @@ public class PanelCliente extends JPanel {
         // Barra de botones de acción
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 8));
         btnGuardar = new JButton("Guardar");
+        btnGuardar.putClientProperty("JButton.buttonType", "default");
         btnActualizar = new JButton("Actualizar");
         btnEliminar = new JButton("Eliminar");
         btnLimpiar = new JButton("Limpiar");
