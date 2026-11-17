@@ -2,6 +2,7 @@ package jardineria;
 
 import jardineria.application.ports.in.ClienteUseCasePort;
 import jardineria.application.ports.in.EmpleadoUseCasePort;
+import jardineria.application.ports.in.GamaProductoUseCasePort;
 import jardineria.application.ports.in.OficinaUseCasePort;
 import jardineria.application.ports.in.PagoUseCasePort;
 import jardineria.application.ports.in.PedidoUseCasePort;
@@ -9,6 +10,7 @@ import jardineria.application.ports.in.ProductoUseCasePort;
 import jardineria.application.ports.in.ReporteUseCasePort;
 import jardineria.application.services.ClienteService;
 import jardineria.application.services.EmpleadoService;
+import jardineria.application.services.GamaProductoService;
 import jardineria.application.services.OficinaService;
 import jardineria.application.services.PagoService;
 import jardineria.application.services.PedidoService;
@@ -26,6 +28,7 @@ import jardineria.domain.ports.out.ReporteExportPort;
 import jardineria.infrastructure.adapters.in.ui.DashboardFrame;
 import jardineria.infrastructure.adapters.in.ui.panels.PanelCliente;
 import jardineria.infrastructure.adapters.in.ui.panels.PanelEmpleado;
+import jardineria.infrastructure.adapters.in.ui.panels.PanelGamaProducto;
 import jardineria.infrastructure.adapters.in.ui.panels.PanelOficina;
 import jardineria.infrastructure.adapters.in.ui.panels.PanelPago;
 import jardineria.infrastructure.adapters.in.ui.panels.PanelPedido;
@@ -72,6 +75,7 @@ public class Main {
             OficinaUseCasePort oficinaService = new OficinaService(oficinaRepo, empleadoRepo);
             EmpleadoUseCasePort empleadoService = new EmpleadoService(empleadoRepo, oficinaRepo, clienteRepo);
             PagoUseCasePort pagoService = new PagoService(pagoRepo, clienteRepo);
+            GamaProductoUseCasePort gamaService = new GamaProductoService(gamaRepo, productoRepo);
             ProductoUseCasePort productoService = new ProductoService(productoRepo, gamaRepo, detallePedidoRepo);
             PedidoUseCasePort pedidoService = new PedidoService(pedidoRepo, detallePedidoRepo, clienteRepo, productoRepo);
             ReporteUseCasePort reporteService = new ReporteService(clienteRepo, productoRepo, pedidoRepo, reporteExportAdapter);
@@ -79,6 +83,7 @@ public class Main {
             // 3. Adaptadores de entrada visual (Paneles Swing con inyección de servicios)
             PanelCliente panelCliente = new PanelCliente(clienteService, reporteService);
             PanelProducto panelProducto = new PanelProducto(productoService, reporteService);
+            PanelGamaProducto panelGama = new PanelGamaProducto(gamaService);
             PanelPedido panelPedido = new PanelPedido(pedidoService, reporteService);
             PanelOficina panelOficina = new PanelOficina(oficinaService);
             PanelEmpleado panelEmpleado = new PanelEmpleado(empleadoService, oficinaService);
@@ -91,12 +96,14 @@ public class Main {
                     pedidoService,
                     oficinaService,
                     empleadoService,
-                    pagoService
+                    pagoService,
+                    gamaService
             );
 
             // Registrar todos los módulos en el sistema de navegación por tarjetas
             frame.registrarPantalla(panelCliente, DashboardFrame.CARD_CLIENTES);
             frame.registrarPantalla(panelProducto, DashboardFrame.CARD_PRODUCTOS);
+            frame.registrarPantalla(panelGama, DashboardFrame.CARD_GAMAS);
             frame.registrarPantalla(panelPedido, DashboardFrame.CARD_PEDIDOS);
             frame.registrarPantalla(panelPago, DashboardFrame.CARD_PAGOS);
             frame.registrarPantalla(panelEmpleado, DashboardFrame.CARD_EMPLEADOS);

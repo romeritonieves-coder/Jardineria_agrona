@@ -217,3 +217,4 @@ public class GraficoBarrasAgrona extends JPanel {
         g2.dispose();
     }
 }
+

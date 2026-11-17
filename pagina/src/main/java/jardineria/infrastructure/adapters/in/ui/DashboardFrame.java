@@ -3,6 +3,7 @@ package jardineria.infrastructure.adapters.in.ui;
 import com.formdev.flatlaf.FlatDarkLaf;
 import jardineria.application.ports.in.ClienteUseCasePort;
 import jardineria.application.ports.in.EmpleadoUseCasePort;
+import jardineria.application.ports.in.GamaProductoUseCasePort;
 import jardineria.application.ports.in.OficinaUseCasePort;
 import jardineria.application.ports.in.PagoUseCasePort;
 import jardineria.application.ports.in.PedidoUseCasePort;
@@ -38,6 +39,7 @@ public class DashboardFrame extends JFrame {
     private OficinaUseCasePort oficinaUseCase;
     private EmpleadoUseCasePort empleadoUseCase;
     private PagoUseCasePort pagoUseCase;
+    private GamaProductoUseCasePort gamaUseCase;
 
     // Etiquetas de métricas (KPIs)
     private JLabel lblTotalClientes;
@@ -60,11 +62,11 @@ public class DashboardFrame extends JFrame {
     public static final String CARD_PAGOS = "CARD_PAGOS";
 
     public DashboardFrame() {
-        this(null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null);
     }
 
     public DashboardFrame(ClienteUseCasePort clienteUseCase, ProductoUseCasePort productoUseCase, PedidoUseCasePort pedidoUseCase) {
-        this(clienteUseCase, productoUseCase, pedidoUseCase, null, null, null);
+        this(clienteUseCase, productoUseCase, pedidoUseCase, null, null, null, null);
     }
 
     public DashboardFrame(ClienteUseCasePort clienteUseCase,
@@ -73,6 +75,16 @@ public class DashboardFrame extends JFrame {
                           OficinaUseCasePort oficinaUseCase,
                           EmpleadoUseCasePort empleadoUseCase,
                           PagoUseCasePort pagoUseCase) {
+        this(clienteUseCase, productoUseCase, pedidoUseCase, oficinaUseCase, empleadoUseCase, pagoUseCase, null);
+    }
+
+    public DashboardFrame(ClienteUseCasePort clienteUseCase,
+                          ProductoUseCasePort productoUseCase,
+                          PedidoUseCasePort pedidoUseCase,
+                          OficinaUseCasePort oficinaUseCase,
+                          EmpleadoUseCasePort empleadoUseCase,
+                          PagoUseCasePort pagoUseCase,
+                          GamaProductoUseCasePort gamaUseCase) {
         configurarTemaAgrona();
 
         this.clienteUseCase = clienteUseCase;
@@ -81,6 +93,7 @@ public class DashboardFrame extends JFrame {
         this.oficinaUseCase = oficinaUseCase;
         this.empleadoUseCase = empleadoUseCase;
         this.pagoUseCase = pagoUseCase;
+        this.gamaUseCase = gamaUseCase;
 
         setTitle("AGRONA Jardinería — Sistema de Gestión Empresarial");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -351,6 +364,9 @@ public class DashboardFrame extends JFrame {
         JButton btnProductos = new JButton("🌿 Catálogo");
         btnProductos.addActionListener(e -> mostrarPantalla(CARD_PRODUCTOS));
 
+        JButton btnGamas = new JButton("🏷️ Gamas");
+        btnGamas.addActionListener(e -> mostrarPantalla(CARD_GAMAS));
+
         JButton btnPagos = new JButton("💳 Pagos");
         btnPagos.addActionListener(e -> mostrarPantalla(CARD_PAGOS));
 
@@ -365,6 +381,7 @@ public class DashboardFrame extends JFrame {
         toolBar.add(btnClientes);
         toolBar.add(btnPedidos);
         toolBar.add(btnProductos);
+        toolBar.add(btnGamas);
         toolBar.add(btnPagos);
         toolBar.addSeparator();
         toolBar.add(btnEmpleados);
@@ -375,12 +392,19 @@ public class DashboardFrame extends JFrame {
 
     public void setServicios(ClienteUseCasePort clienteUseCase, ProductoUseCasePort productoUseCase, PedidoUseCasePort pedidoUseCase,
                              OficinaUseCasePort oficinaUseCase, EmpleadoUseCasePort empleadoUseCase, PagoUseCasePort pagoUseCase) {
+        setServicios(clienteUseCase, productoUseCase, pedidoUseCase, oficinaUseCase, empleadoUseCase, pagoUseCase, null);
+    }
+
+    public void setServicios(ClienteUseCasePort clienteUseCase, ProductoUseCasePort productoUseCase, PedidoUseCasePort pedidoUseCase,
+                             OficinaUseCasePort oficinaUseCase, EmpleadoUseCasePort empleadoUseCase, PagoUseCasePort pagoUseCase,
+                             GamaProductoUseCasePort gamaUseCase) {
         this.clienteUseCase = clienteUseCase;
         this.productoUseCase = productoUseCase;
         this.pedidoUseCase = pedidoUseCase;
         this.oficinaUseCase = oficinaUseCase;
         this.empleadoUseCase = empleadoUseCase;
         this.pagoUseCase = pagoUseCase;
+        this.gamaUseCase = gamaUseCase;
         actualizarEstadisticasDashboard();
     }
 
@@ -460,15 +484,18 @@ public class DashboardFrame extends JFrame {
         visualContainer.add(graficoBarras, BorderLayout.CENTER);
 
         // Panel lateral de accesos directos
-        JPanel panelAccesos = new JPanel(new GridLayout(6, 1, 8, 8));
+        JPanel panelAccesos = new JPanel(new GridLayout(7, 1, 8, 8));
         panelAccesos.setOpaque(false);
-        panelAccesos.setPreferredSize(new Dimension(240, 240));
+        panelAccesos.setPreferredSize(new Dimension(240, 270));
 
         JButton btnAccesoCli = new JButton("👥 Gestionar Clientes");
         btnAccesoCli.addActionListener(e -> mostrarPantalla(CARD_CLIENTES));
 
         JButton btnAccesoProd = new JButton("🌿 Catálogo de Productos");
         btnAccesoProd.addActionListener(e -> mostrarPantalla(CARD_PRODUCTOS));
+
+        JButton btnAccesoGamas = new JButton("🏷️ Gamas de Producto");
+        btnAccesoGamas.addActionListener(e -> mostrarPantalla(CARD_GAMAS));
 
         JButton btnAccesoPed = new JButton("📦 Despacho de Pedidos");
         btnAccesoPed.addActionListener(e -> mostrarPantalla(CARD_PEDIDOS));
@@ -484,6 +511,7 @@ public class DashboardFrame extends JFrame {
 
         panelAccesos.add(btnAccesoCli);
         panelAccesos.add(btnAccesoProd);
+        panelAccesos.add(btnAccesoGamas);
         panelAccesos.add(btnAccesoPed);
         panelAccesos.add(btnAccesoPagos);
         panelAccesos.add(btnAccesoEmp);
