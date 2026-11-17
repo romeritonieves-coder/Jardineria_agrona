@@ -3,11 +3,13 @@ package jardineria.infrastructure.adapters.in.ui.panels;
 import jardineria.application.exceptions.BusinessRuleException;
 import jardineria.application.exceptions.ResourceNotFoundException;
 import jardineria.application.ports.in.PedidoUseCasePort;
+import jardineria.application.ports.in.ReporteUseCasePort;
 import jardineria.domain.model.Cliente;
 import jardineria.domain.model.DetallePedido;
 import jardineria.domain.model.Pedido;
 import jardineria.domain.model.Producto;
 import jardineria.infrastructure.adapters.in.ui.DashboardFrame;
+import jardineria.infrastructure.adapters.out.export.ReporteExcelAdapter;
 import jardineria.infrastructure.adapters.out.persistence.PersistenceException;
 
 import javax.swing.*;
@@ -28,6 +30,7 @@ import java.util.List;
 public class PanelPedido extends JPanel {
 
     private final PedidoUseCasePort pedidoUseCase;
+    private ReporteUseCasePort reporteUseCase;
 
     // Componentes del formulario (Cabecera)
     private JTextField txtCodigoPedido;
@@ -57,7 +60,12 @@ public class PanelPedido extends JPanel {
     private DefaultTableModel modeloTabla;
 
     public PanelPedido(PedidoUseCasePort pedidoUseCase) {
+        this(pedidoUseCase, null);
+    }
+
+    public PanelPedido(PedidoUseCasePort pedidoUseCase, ReporteUseCasePort reporteUseCase) {
         this.pedidoUseCase = pedidoUseCase;
+        this.reporteUseCase = reporteUseCase;
         setOpaque(true);
         setBackground(UIManager.getColor("Panel.background"));
         setLayout(new BorderLayout(10, 10));
@@ -72,6 +80,7 @@ public class PanelPedido extends JPanel {
         // Título del módulo
         JLabel lblTitulo = new JLabel("Gestión y Administración de Pedidos");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitulo.setForeground(new Color(0x2E, 0xCC, 0x71));
         lblTitulo.setBorder(new EmptyBorder(0, 0, 10, 0));
         add(lblTitulo, BorderLayout.NORTH);
 
@@ -176,6 +185,7 @@ public class PanelPedido extends JPanel {
         // 3. Barra de Botones CRUD
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 8));
         btnGuardar = new JButton("Guardar");
+        btnGuardar.putClientProperty("JButton.buttonType", "default");
         btnActualizar = new JButton("Actualizar");
         btnEliminar = new JButton("Eliminar");
         btnLimpiar = new JButton("Limpiar");
@@ -254,14 +264,58 @@ public class PanelPedido extends JPanel {
         JScrollPane scrollTabla = new JScrollPane(tablaPedidos);
         panel.add(scrollTabla, BorderLayout.CENTER);
 
-        // Botón superior para refrescar tabla
-        JPanel panelTop = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Botones superiores: Refrescar y Exportar Pedidos a Excel
+        JPanel panelTop = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
         JButton btnRecargar = new JButton("Recargar Pedidos");
         btnRecargar.addActionListener(e -> cargarPedidosEnTabla());
+
+        JButton btnExportar = new JButton("Exportar a Excel (.xlsx)");
+        btnExportar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnExportar.addActionListener(e -> accionExportarExcel());
+
         panelTop.add(btnRecargar);
+        panelTop.add(btnExportar);
         panel.add(panelTop, BorderLayout.NORTH);
 
         return panel;
+    }
+
+    private void accionExportarExcel() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Guardar Historial de Pedidos en Excel");
+        fileChooser.setSelectedFile(new java.io.File("reporte_pedidos.xlsx"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Hojas de cálculo Excel (*.xlsx)", "xlsx"));
+
+        int userSelection = fileChooser.showSaveDialog(this);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            java.io.File fileToSave = fileChooser.getSelectedFile();
+            if (!fileToSave.getName().toLowerCase().endsWith(".xlsx")) {
+                fileToSave = new java.io.File(fileToSave.getAbsolutePath() + ".xlsx");
+            }
+
+            try {
+                if (reporteUseCase != null) {
+                    reporteUseCase.exportarPedidos(fileToSave);
+                } else {
+                    new ReporteExcelAdapter().exportarPedidosExcel(pedidoUseCase.obtenerTodosLosPedidos(), fileToSave);
+                }
+
+                int opcion = JOptionPane.showConfirmDialog(this,
+                        "¡Reporte de pedidos exportado exitosamente!\n\nArchivo guardado en:\n" + fileToSave.getAbsolutePath() +
+                        "\n\n¿Deseas abrir el archivo ahora?",
+                        "Exportación Exitosa",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                if (opcion == JOptionPane.YES_OPTION && java.awt.Desktop.isDesktopSupported()) {
+                    try {
+                        java.awt.Desktop.getDesktop().open(fileToSave);
+                    } catch (Exception ignored) {}
+                }
+            } catch (Exception ex) {
+                mostrarError("Error en Exportación", "No fue posible generar el archivo Excel: " + ex.getMessage());
+            }
+        }
     }
 
     /**
@@ -484,7 +538,13 @@ public class PanelPedido extends JPanel {
         }
 
         int codPedido = Integer.parseInt(codPedStr);
+        if (codPedido <= 0) {
+            throw new BusinessRuleException("El código del pedido debe ser un entero positivo mayor a cero.");
+        }
         int codCliente = Integer.parseInt(codCliStr);
+        if (codCliente <= 0) {
+            throw new BusinessRuleException("El código del cliente debe ser un entero positivo mayor a cero.");
+        }
 
         LocalDate fechaPedido = !txtFechaPedido.getText().trim().isEmpty()
                 ? LocalDate.parse(txtFechaPedido.getText().trim()) : LocalDate.now();
@@ -553,6 +613,10 @@ public class PanelPedido extends JPanel {
             BigDecimal precioUnitario = BigDecimal.ZERO;
             if (!precioStr.isEmpty()) {
                 precioUnitario = new BigDecimal(precioStr);
+                if (precioUnitario.compareTo(BigDecimal.ZERO) < 0) {
+                    mostrarError("Precio Inválido", "El precio unitario no puede ser negativo.");
+                    return;
+                }
             }
 
             BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(cantidad));
