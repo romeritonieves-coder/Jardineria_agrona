@@ -2,6 +2,9 @@ package jardineria.infrastructure.adapters.in.ui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import jardineria.application.ports.in.ClienteUseCasePort;
+import jardineria.application.ports.in.EmpleadoUseCasePort;
+import jardineria.application.ports.in.OficinaUseCasePort;
+import jardineria.application.ports.in.PagoUseCasePort;
 import jardineria.application.ports.in.PedidoUseCasePort;
 import jardineria.application.ports.in.ProductoUseCasePort;
 
@@ -26,6 +29,9 @@ public class DashboardFrame extends JFrame {
     private ClienteUseCasePort clienteUseCase;
     private ProductoUseCasePort productoUseCase;
     private PedidoUseCasePort pedidoUseCase;
+    private OficinaUseCasePort oficinaUseCase;
+    private EmpleadoUseCasePort empleadoUseCase;
+    private PagoUseCasePort pagoUseCase;
 
     private JLabel lblTotalClientes;
     private JLabel lblTotalProductos;
@@ -41,15 +47,27 @@ public class DashboardFrame extends JFrame {
     public static final String CARD_PAGOS = "CARD_PAGOS";
 
     public DashboardFrame() {
-        this(null, null, null);
+        this(null, null, null, null, null, null);
     }
 
     public DashboardFrame(ClienteUseCasePort clienteUseCase, ProductoUseCasePort productoUseCase, PedidoUseCasePort pedidoUseCase) {
+        this(clienteUseCase, productoUseCase, pedidoUseCase, null, null, null);
+    }
+
+    public DashboardFrame(ClienteUseCasePort clienteUseCase,
+                          ProductoUseCasePort productoUseCase,
+                          PedidoUseCasePort pedidoUseCase,
+                          OficinaUseCasePort oficinaUseCase,
+                          EmpleadoUseCasePort empleadoUseCase,
+                          PagoUseCasePort pagoUseCase) {
         configurarTemaAgrona();
 
         this.clienteUseCase = clienteUseCase;
         this.productoUseCase = productoUseCase;
         this.pedidoUseCase = pedidoUseCase;
+        this.oficinaUseCase = oficinaUseCase;
+        this.empleadoUseCase = empleadoUseCase;
+        this.pagoUseCase = pagoUseCase;
 
         setTitle("AGRONA Jardinería - Sistema de Gestión Empresarial");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -316,10 +334,14 @@ public class DashboardFrame extends JFrame {
         return toolBar;
     }
 
-    public void setServicios(ClienteUseCasePort clienteUseCase, ProductoUseCasePort productoUseCase, PedidoUseCasePort pedidoUseCase) {
+    public void setServicios(ClienteUseCasePort clienteUseCase, ProductoUseCasePort productoUseCase, PedidoUseCasePort pedidoUseCase,
+                             OficinaUseCasePort oficinaUseCase, EmpleadoUseCasePort empleadoUseCase, PagoUseCasePort pagoUseCase) {
         this.clienteUseCase = clienteUseCase;
         this.productoUseCase = productoUseCase;
         this.pedidoUseCase = pedidoUseCase;
+        this.oficinaUseCase = oficinaUseCase;
+        this.empleadoUseCase = empleadoUseCase;
+        this.pagoUseCase = pagoUseCase;
         actualizarEstadisticasDashboard();
     }
 
@@ -385,18 +407,30 @@ public class DashboardFrame extends JFrame {
         btnRefrescar.setForeground(Color.WHITE);
         btnRefrescar.addActionListener(e -> actualizarEstadisticasDashboard());
 
-        JButton btnIrClientes = new JButton("👥 Gestionar Clientes");
+        JButton btnIrClientes = new JButton("👥 Clientes");
         btnIrClientes.addActionListener(e -> mostrarPantalla(CARD_CLIENTES));
 
-        JButton btnIrProductos = new JButton("🌿 Ver Catálogo");
+        JButton btnIrProductos = new JButton("🌿 Catálogo");
         btnIrProductos.addActionListener(e -> mostrarPantalla(CARD_PRODUCTOS));
 
-        JButton btnIrPedidos = new JButton("📦 Despacho de Pedidos");
+        JButton btnIrPedidos = new JButton("📦 Pedidos");
         btnIrPedidos.addActionListener(e -> mostrarPantalla(CARD_PEDIDOS));
+
+        JButton btnIrPagos = new JButton("💳 Pagos");
+        btnIrPagos.addActionListener(e -> mostrarPantalla(CARD_PAGOS));
+
+        JButton btnIrEmpleados = new JButton("👔 Empleados");
+        btnIrEmpleados.addActionListener(e -> mostrarPantalla(CARD_EMPLEADOS));
+
+        JButton btnIrOficinas = new JButton("🏢 Oficinas");
+        btnIrOficinas.addActionListener(e -> mostrarPantalla(CARD_OFICINAS));
 
         bottomBar.add(btnIrClientes);
         bottomBar.add(btnIrProductos);
         bottomBar.add(btnIrPedidos);
+        bottomBar.add(btnIrPagos);
+        bottomBar.add(btnIrEmpleados);
+        bottomBar.add(btnIrOficinas);
         bottomBar.add(btnRefrescar);
 
         centerContainer.add(bottomBar);
