@@ -10,9 +10,15 @@ import java.util.Optional;
  */
 public interface ClienteUseCasePort {
     Cliente registrarCliente(Cliente cliente);
+    default Cliente crearCliente(Cliente cliente) {
+        return registrarCliente(cliente);
+    }
     Cliente actualizarCliente(Cliente cliente);
     Optional<Cliente> obtenerClientePorId(Integer codigoCliente);
     List<Cliente> listarTodosLosClientes();
+    default List<Cliente> obtenerTodosLosClientes() {
+        return listarTodosLosClientes();
+    }
     void eliminarCliente(Integer codigoCliente);
 }
 

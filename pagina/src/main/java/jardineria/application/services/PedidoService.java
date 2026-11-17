@@ -190,5 +190,45 @@ public class PedidoService implements PedidoUseCasePort {
         pedidoRepository.update(pedido);
         log.info("Pedido {} cancelado exitosamente.", codigoPedido);
     }
+
+    @Override
+    public Pedido actualizarPedido(Pedido pedido) {
+        log.info("Iniciando actualización para el pedido con código: {}", pedido.getCodigoPedido());
+
+        if (pedido.getCodigoPedido() == null) {
+            throw new BusinessRuleException("El código del pedido es requerido para la actualización.");
+        }
+
+        pedidoRepository.findById(pedido.getCodigoPedido())
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el pedido con código: " + pedido.getCodigoPedido()));
+
+        if (pedido.getCliente() == null || pedido.getCliente().getCodigoCliente() == null) {
+            throw new BusinessRuleException("El pedido debe tener un cliente asignado.");
+        }
+
+        Integer codCliente = pedido.getCliente().getCodigoCliente();
+        clienteRepository.findById(codCliente)
+                .orElseThrow(() -> new ResourceNotFoundException("El cliente con código " + codCliente + " no existe."));
+
+        if (pedido.getFechaEsperada() != null && pedido.getFechaPedido() != null
+                && pedido.getFechaEsperada().isBefore(pedido.getFechaPedido())) {
+            throw new BusinessRuleException("La fecha esperada no puede ser anterior a la fecha del pedido.");
+        }
+
+        Pedido actualizado = pedidoRepository.update(pedido);
+        log.info("Pedido {} actualizado con éxito.", actualizado.getCodigoPedido());
+        return actualizado;
+    }
+
+    @Override
+    public void eliminarPedido(Integer codigoPedido) {
+        log.info("Solicitud para eliminar el pedido con código: {}", codigoPedido);
+
+        pedidoRepository.findById(codigoPedido)
+                .orElseThrow(() -> new ResourceNotFoundException("No se puede eliminar. Pedido no encontrado: " + codigoPedido));
+
+        pedidoRepository.deleteById(codigoPedido);
+        log.info("Pedido con código {} eliminado exitosamente.", codigoPedido);
+    }
 }
 
