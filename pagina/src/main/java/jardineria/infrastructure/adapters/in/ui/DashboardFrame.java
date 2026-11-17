@@ -9,6 +9,7 @@ import jardineria.application.ports.in.PagoUseCasePort;
 import jardineria.application.ports.in.PedidoUseCasePort;
 import jardineria.application.ports.in.ProductoUseCasePort;
 import jardineria.infrastructure.adapters.in.ui.components.GraficoBarrasAgrona;
+import jardineria.infrastructure.adapters.in.ui.components.HeroAgronaPanel;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -412,50 +413,44 @@ public class DashboardFrame extends JFrame {
         JPanel mainContent = new JPanel();
         mainContent.setLayout(new BoxLayout(mainContent, BoxLayout.Y_AXIS));
         mainContent.setOpaque(true);
-        mainContent.setBackground(new Color(0x12, 0x16, 0x14));
-        mainContent.setBorder(new EmptyBorder(24, 32, 24, 32));
+        mainContent.setBackground(new Color(0x0C, 0x12, 0x0E));
+        mainContent.setBorder(new EmptyBorder(16, 24, 32, 24));
 
-        // 1. Cabecera con Logotipo Oficial e Identidad AGRONA
-        JPanel headerPanel = new JPanel(new BorderLayout(16, 10));
-        headerPanel.setOpaque(false);
-        headerPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 70));
+        // 1. Hero Section de Alta Gama: Fondo Ambiental, Logotipo Grande Flotante y Marca Oficial
+        HeroAgronaPanel heroPanel = new HeroAgronaPanel(this::mostrarPantalla);
+        heroPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        heroPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 380));
+        mainContent.add(heroPanel);
+        mainContent.add(Box.createVerticalStrut(28));
 
-        ImageIcon logoGrande = obtenerLogoIcon(58, 58);
-        if (logoGrande != null) {
-            JLabel lblLogo = new JLabel(logoGrande);
-            lblLogo.setBorder(new EmptyBorder(0, 0, 0, 8));
-            headerPanel.add(lblLogo, BorderLayout.WEST);
-        }
+        // 2. Cabecera de Sección de Métricas Ejecutivas y Sincronización
+        JPanel kpiHeader = new JPanel(new BorderLayout(16, 0));
+        kpiHeader.setOpaque(false);
+        kpiHeader.setMaximumSize(new Dimension(Short.MAX_VALUE, 42));
+        kpiHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+        kpiHeader.setBorder(new EmptyBorder(0, 4, 10, 4));
 
-        JPanel headerText = new JPanel(new GridLayout(2, 1, 2, 2));
-        headerText.setOpaque(false);
+        JLabel lblKpiSection = new JLabel("📊 CONTROL OPERATIVO & MÉTRICAS EN TIEMPO REAL");
+        lblKpiSection.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lblKpiSection.setForeground(new Color(0x2E, 0xCC, 0x71));
 
-        JLabel titleLabel = new JLabel("AGRONA Jardinería");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        titleLabel.setForeground(new Color(0x2E, 0xCC, 0x71)); // Verde Esmeralda
-
-        JLabel subtitleLabel = new JLabel("Centro Ejecutivo de Control & Operaciones Empresariales | Tiempo Real");
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        subtitleLabel.setForeground(new Color(0x94, 0xA3, 0x98));
-
-        headerText.add(titleLabel);
-        headerText.add(subtitleLabel);
-        headerPanel.add(headerText, BorderLayout.CENTER);
-
-        // Botón superior de refresco con animación
         JButton btnRefrescarTop = new JButton("🔄 Sincronizar Métricas");
         btnRefrescarTop.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnRefrescarTop.setBackground(new Color(0x27, 0xAE, 0x60));
         btnRefrescarTop.setForeground(Color.WHITE);
+        btnRefrescarTop.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnRefrescarTop.addActionListener(e -> actualizarEstadisticasDashboard());
-        headerPanel.add(btnRefrescarTop, BorderLayout.EAST);
 
-        mainContent.add(headerPanel);
-        mainContent.add(Box.createVerticalStrut(22));
+        kpiHeader.add(lblKpiSection, BorderLayout.WEST);
+        kpiHeader.add(btnRefrescarTop, BorderLayout.EAST);
 
-        // 2. Grilla de Tarjetas KPI (6 módulos conectados en disposición 2x3)
+        mainContent.add(kpiHeader);
+        mainContent.add(Box.createVerticalStrut(12));
+
+        // 3. Grilla de Tarjetas KPI (6 módulos conectados en disposición 2x3)
         JPanel kpiGrid = new JPanel(new GridLayout(2, 3, 18, 18));
         kpiGrid.setOpaque(false);
+        kpiGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
         kpiGrid.setMaximumSize(new Dimension(Short.MAX_VALUE, 260));
 
         lblTotalClientes = new JLabel("0", SwingConstants.LEFT);
@@ -473,11 +468,12 @@ public class DashboardFrame extends JFrame {
         kpiGrid.add(crearTarjetaKpi("SEDES Y OFICINAS", lblTotalOficinas, "Puntos de operación y sucursales", new Color(0xA3, 0xE6, 0x35), "🏢"));
 
         mainContent.add(kpiGrid);
-        mainContent.add(Box.createVerticalStrut(20));
+        mainContent.add(Box.createVerticalStrut(24));
 
-        // 3. Sección Visual de Gráfica Interactiva y Acciones Rápidas
+        // 4. Sección Visual de Gráfica Interactiva y Acciones Rápidas
         JPanel visualContainer = new JPanel(new BorderLayout(20, 0));
         visualContainer.setOpaque(false);
+        visualContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // Componente gráfico personalizado Swing
         graficoBarras = new GraficoBarrasAgrona();
@@ -526,11 +522,15 @@ public class DashboardFrame extends JFrame {
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setOpaque(true);
-        scrollPane.setBackground(new Color(0x12, 0x16, 0x14));
+        scrollPane.setBackground(new Color(0x0C, 0x12, 0x0E));
+        if (scrollPane.getViewport() != null) {
+            scrollPane.getViewport().setOpaque(true);
+            scrollPane.getViewport().setBackground(new Color(0x0C, 0x12, 0x0E));
+        }
 
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(true);
-        wrapper.setBackground(new Color(0x12, 0x16, 0x14));
+        wrapper.setBackground(new Color(0x0C, 0x12, 0x0E));
         wrapper.add(scrollPane, BorderLayout.CENTER);
 
         return wrapper;
@@ -701,7 +701,7 @@ public class DashboardFrame extends JFrame {
     }
 
     public static void hacerComponentesOpacos(Container parent) {
-        if (parent == null) return;
+        if (parent == null || parent instanceof HeroAgronaPanel || parent instanceof GraficoBarrasAgrona) return;
 
         Color panelBg = new Color(0x12, 0x16, 0x14);
 
@@ -721,6 +721,9 @@ public class DashboardFrame extends JFrame {
         }
 
         for (Component child : parent.getComponents()) {
+            if (child instanceof HeroAgronaPanel || child instanceof GraficoBarrasAgrona) {
+                continue;
+            }
             if (child instanceof JPanel || child instanceof JScrollPane || child instanceof JViewport ||
                 child instanceof JSplitPane || child instanceof JTabbedPane) {
                 if (child instanceof JComponent jcomp) {
