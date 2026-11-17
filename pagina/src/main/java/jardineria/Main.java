@@ -40,16 +40,8 @@ public class Main {
         System.setProperty("sun.java2d.d3d", "false");
         System.setProperty("sun.java2d.noddraw", "true");
 
-        // Configurar Look & Feel FlatDarkLaf
-        FlatDarkLaf.setup();
-
-        // Configuración global para evitar desgarro visual (ghosting) en popups y menús
-        UIManager.put("PopupMenu.dropShadowPainted", false);
-        UIManager.put("PopupMenu.opaque", true);
-        UIManager.put("MenuItem.opaque", true);
-        UIManager.put("Menu.opaque", true);
-        UIManager.put("MenuBar.opaque", true);
-        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+        // Configurar tema e identidad visual "AGRONA Jardinería" (Dark Emerald & Lime)
+        DashboardFrame.configurarTemaAgrona();
 
         SwingUtilities.invokeLater(() -> {
             // 1. Adaptadores de salida (Infraestructura / Persistencia JDBC & Exportación)

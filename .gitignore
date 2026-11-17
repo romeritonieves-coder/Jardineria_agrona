@@ -1,6 +1,19 @@
+# Java & Maven
 target/
 *.class
 .idea/
 *.iml
 .vscode/
 .DS_Store
+
+# Web Dependencies & Build outputs
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.pnpm-store/
+*.log
+
+# Archives
+*.zip
+*.tar.gz

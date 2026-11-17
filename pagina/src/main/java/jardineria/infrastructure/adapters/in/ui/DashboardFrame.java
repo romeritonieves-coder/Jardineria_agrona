@@ -6,6 +6,7 @@ import jardineria.application.ports.in.PedidoUseCasePort;
 import jardineria.application.ports.in.ProductoUseCasePort;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
@@ -13,6 +14,7 @@ import java.awt.*;
 /**
  * Ventana principal del sistema (Dashboard) para Jardinería Agrona.
  * Adaptador de entrada primario en la Arquitectura Hexagonal.
+ * Diseñado con la identidad visual de "AGRONA Jardinería" (Tema oscuro con acentos verde esmeralda y verde lima).
  */
 public class DashboardFrame extends JFrame {
 
@@ -43,22 +45,16 @@ public class DashboardFrame extends JFrame {
     }
 
     public DashboardFrame(ClienteUseCasePort clienteUseCase, ProductoUseCasePort productoUseCase, PedidoUseCasePort pedidoUseCase) {
+        configurarTemaAgrona();
+
         this.clienteUseCase = clienteUseCase;
         this.productoUseCase = productoUseCase;
         this.pedidoUseCase = pedidoUseCase;
 
-        // Forzar opacidad en popups y menús de Swing para evitar desgarro visual (ghosting)
-        UIManager.put("PopupMenu.dropShadowPainted", false);
-        UIManager.put("PopupMenu.opaque", true);
-        UIManager.put("MenuItem.opaque", true);
-        UIManager.put("Menu.opaque", true);
-        UIManager.put("MenuBar.opaque", true);
-        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-
-        setTitle("Jardinería Agrona - Sistema de Gestión Empresarial");
+        setTitle("AGRONA Jardinería - Sistema de Gestión Empresarial");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1150, 720);
-        setMinimumSize(new Dimension(900, 600));
+        setSize(1180, 740);
+        setMinimumSize(new Dimension(950, 620));
         setLocationRelativeTo(null);
 
         // Inicializar MenuBar
@@ -66,10 +62,13 @@ public class DashboardFrame extends JFrame {
 
         // Layout principal
         setLayout(new BorderLayout());
+        Color fondoGeneral = UIManager.getColor("Panel.background");
+        if (fondoGeneral == null) fondoGeneral = new Color(0x12, 0x16, 0x14);
+
         this.getRootPane().setOpaque(true);
-        this.getRootPane().setBackground(UIManager.getColor("Panel.background"));
+        this.getRootPane().setBackground(fondoGeneral);
         ((JComponent) this.getContentPane()).setOpaque(true);
-        ((JComponent) this.getContentPane()).setBackground(UIManager.getColor("Panel.background"));
+        ((JComponent) this.getContentPane()).setBackground(fondoGeneral);
 
         // Barra de herramientas superior / navegación rápida
         add(createToolBar(), BorderLayout.NORTH);
@@ -78,7 +77,7 @@ public class DashboardFrame extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setOpaque(true);
-        contentPanel.setBackground(UIManager.getColor("Panel.background"));
+        contentPanel.setBackground(fondoGeneral);
 
         // Añadir tarjeta de bienvenida inicial con Dashboard de métricas
         registrarPantalla(createHomePanel(), CARD_HOME);
@@ -92,8 +91,9 @@ public class DashboardFrame extends JFrame {
         add(contentPanel, BorderLayout.CENTER);
 
         // Barra de estado inferior
-        statusLabel = new JLabel(" Sistema Listo | Conexión: MySQL Docker | Jardinería Agrona v1.0");
-        statusLabel.setBorder(new EmptyBorder(6, 12, 6, 12));
+        statusLabel = new JLabel(" Sistema Listo | Base de datos: Conectada (MySQL Docker) | AGRONA Jardinería v1.0");
+        statusLabel.setBorder(new EmptyBorder(8, 14, 8, 14));
+        statusLabel.setForeground(new Color(0x94, 0xA3, 0x98));
         add(statusLabel, BorderLayout.SOUTH);
 
         // Asegurar opacidad recursiva de todos los componentes
@@ -101,6 +101,84 @@ public class DashboardFrame extends JFrame {
 
         // Mostrar pantalla de inicio y cargar KPIs
         mostrarPantalla(CARD_HOME);
+    }
+
+    /**
+     * Aplica la personalización global de FlatLaf para la identidad de marca "AGRONA Jardinería":
+     * Fondos oscuros profundos botánicos (#121614, #1E2621), acentos en verde esmeralda (#2ECC71, #27AE60)
+     * y verde lima (#A3E635), bordes redondeados y efectos hover modernos.
+     */
+    public static void configurarTemaAgrona() {
+        FlatDarkLaf.setup();
+
+        Color fondoGeneral = new Color(0x12, 0x16, 0x14);   // #121614
+        Color fondoPaneles = new Color(0x1E, 0x26, 0x21);   // #1E2621
+        Color fondoElevado = new Color(0x25, 0x32, 0x2A);   // #25322A
+        Color bordeSuave = new Color(0x2D, 0x3D, 0x33);     // #2D3D33
+        Color verdeEsmeralda = new Color(0x2E, 0xCC, 0x71); // #2ECC71 (Acento primario)
+        Color verdeLima = new Color(0xA3, 0xE6, 0x35);      // #A3E635 (Acento secundario)
+        Color textoPrincipal = new Color(0xF1, 0xF5, 0xF2);
+        Color textoSecundario = new Color(0x94, 0xA3, 0x98);
+
+        // 1. Acentos y estilos redondeados modernos
+        UIManager.put("Component.accentColor", verdeEsmeralda);
+        UIManager.put("Component.focusColor", new Color(0x2E, 0xCC, 0x71, 100));
+        UIManager.put("Component.focusedBorderColor", verdeEsmeralda);
+        UIManager.put("Component.borderColor", bordeSuave);
+        UIManager.put("Component.arc", 10);
+        UIManager.put("Button.arc", 10);
+        UIManager.put("TextComponent.arc", 8);
+        UIManager.put("ScrollBar.thumbArc", 8);
+        UIManager.put("ProgressBar.arc", 10);
+
+        // 2. Superficies y fondos
+        UIManager.put("Panel.background", fondoGeneral);
+        UIManager.put("control", fondoPaneles);
+        UIManager.put("window", fondoGeneral);
+        UIManager.put("Separator.foreground", bordeSuave);
+
+        // 3. Botones y efectos Hover
+        UIManager.put("Button.background", fondoElevado);
+        UIManager.put("Button.hoverBackground", new Color(0x31, 0x43, 0x38));
+        UIManager.put("Button.default.background", new Color(0x27, 0xAE, 0x60));
+        UIManager.put("Button.default.hoverBackground", verdeEsmeralda);
+        UIManager.put("Button.default.foreground", Color.WHITE);
+        UIManager.put("Button.foreground", textoPrincipal);
+
+        // 4. Tablas de datos
+        UIManager.put("Table.background", fondoPaneles);
+        UIManager.put("Table.alternateRowColor", new Color(0x17, 0x20, 0x1A));
+        UIManager.put("Table.selectionBackground", new Color(0x27, 0xAE, 0x60));
+        UIManager.put("Table.selectionForeground", Color.WHITE);
+        UIManager.put("Table.gridColor", bordeSuave);
+        UIManager.put("TableHeader.background", fondoElevado);
+        UIManager.put("TableHeader.foreground", verdeEsmeralda);
+        UIManager.put("TableHeader.separatorColor", bordeSuave);
+
+        // 5. Menús y Barras
+        UIManager.put("MenuBar.background", fondoGeneral);
+        UIManager.put("MenuBar.borderColor", bordeSuave);
+        UIManager.put("ToolBar.background", fondoPaneles);
+        UIManager.put("ToolBar.borderColor", bordeSuave);
+        UIManager.put("PopupMenu.background", fondoPaneles);
+        UIManager.put("PopupMenu.borderColor", verdeEsmeralda);
+        UIManager.put("MenuItem.selectionBackground", new Color(0x27, 0xAE, 0x60));
+        UIManager.put("MenuItem.selectionForeground", Color.WHITE);
+
+        // 6. Inputs
+        UIManager.put("TextField.background", new Color(0x16, 0x1D, 0x18));
+        UIManager.put("TextField.foreground", textoPrincipal);
+        UIManager.put("TextField.caretColor", verdeLima);
+        UIManager.put("TextArea.background", new Color(0x16, 0x1D, 0x18));
+        UIManager.put("TextArea.foreground", textoPrincipal);
+
+        // 7. Prevención de ghosting
+        UIManager.put("PopupMenu.dropShadowPainted", false);
+        UIManager.put("PopupMenu.opaque", true);
+        UIManager.put("MenuItem.opaque", true);
+        UIManager.put("Menu.opaque", true);
+        UIManager.put("MenuBar.opaque", true);
+        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
     }
 
     private JMenuBar createMenuBar() {
@@ -133,7 +211,7 @@ public class DashboardFrame extends JFrame {
 
         // Menú Catálogo e Inventario
         JMenu menuInventario = new JMenu("Catálogo");
-        JMenuItem itemProductos = new JMenuItem("Productos");
+        JMenuItem itemProductos = new JMenuItem("Productos e Inventario");
         itemProductos.addActionListener(e -> mostrarPantalla(CARD_PRODUCTOS));
         JMenuItem itemGamas = new JMenuItem("Gamas de Producto");
         itemGamas.addActionListener(e -> mostrarPantalla(CARD_GAMAS));
@@ -153,8 +231,10 @@ public class DashboardFrame extends JFrame {
         JMenu menuAyuda = new JMenu("Ayuda");
         JMenuItem itemAcercaDe = new JMenuItem("Acerca de");
         itemAcercaDe.addActionListener(e -> JOptionPane.showMessageDialog(this,
-                "Jardinería Agrona\nArquitectura Hexagonal & SOLID\nJava 17 + Swing FlatLaf + MySQL",
-                "Acerca de Jardinería Agrona",
+                "AGRONA Jardinería - Sistema de Gestión Empresarial\n" +
+                "Arquitectura Hexagonal & SOLID | Java 17 + FlatLaf + MySQL\n" +
+                "Identidad Visual: Dark Emerald & Lime",
+                "Acerca de AGRONA Jardinería",
                 JOptionPane.INFORMATION_MESSAGE));
         menuAyuda.add(itemAcercaDe);
 
@@ -200,27 +280,27 @@ public class DashboardFrame extends JFrame {
     private JToolBar createToolBar() {
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
-        toolBar.setBorder(new EmptyBorder(5, 10, 5, 10));
+        toolBar.setBorder(new EmptyBorder(6, 12, 6, 12));
 
-        JButton btnHome = new JButton(" Inicio");
+        JButton btnHome = new JButton("📊 Inicio");
         btnHome.addActionListener(e -> mostrarPantalla(CARD_HOME));
 
-        JButton btnClientes = new JButton(" Clientes");
+        JButton btnClientes = new JButton("👥 Clientes");
         btnClientes.addActionListener(e -> mostrarPantalla(CARD_CLIENTES));
 
-        JButton btnPedidos = new JButton(" Pedidos");
+        JButton btnPedidos = new JButton("📦 Pedidos");
         btnPedidos.addActionListener(e -> mostrarPantalla(CARD_PEDIDOS));
 
-        JButton btnProductos = new JButton(" Productos");
+        JButton btnProductos = new JButton("🌿 Productos");
         btnProductos.addActionListener(e -> mostrarPantalla(CARD_PRODUCTOS));
 
-        JButton btnPagos = new JButton(" Pagos");
+        JButton btnPagos = new JButton("💳 Pagos");
         btnPagos.addActionListener(e -> mostrarPantalla(CARD_PAGOS));
 
-        JButton btnEmpleados = new JButton(" Empleados");
+        JButton btnEmpleados = new JButton("👔 Empleados");
         btnEmpleados.addActionListener(e -> mostrarPantalla(CARD_EMPLEADOS));
 
-        JButton btnOficinas = new JButton(" Oficinas");
+        JButton btnOficinas = new JButton("🏢 Oficinas");
         btnOficinas.addActionListener(e -> mostrarPantalla(CARD_OFICINAS));
 
         toolBar.add(btnHome);
@@ -246,60 +326,72 @@ public class DashboardFrame extends JFrame {
     private JPanel createHomePanel() {
         JPanel panel = new JPanel(new BorderLayout(25, 25));
         panel.setOpaque(true);
-        panel.setBackground(UIManager.getColor("Panel.background"));
-        panel.setBorder(new EmptyBorder(35, 45, 35, 45));
+        panel.setBackground(new Color(0x12, 0x16, 0x14));
+        panel.setBorder(new EmptyBorder(30, 40, 30, 40));
 
-        // 1. Cabecera superior de bienvenida
-        JPanel headerPanel = new JPanel(new GridLayout(2, 1, 4, 4));
+        // 1. Cabecera superior con logotipo e identidad AGRONA
+        JPanel headerPanel = new JPanel(new BorderLayout(15, 10));
         headerPanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel("Panel de Control & Indicadores Clave (KPIs)");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        JPanel headerText = new JPanel(new GridLayout(2, 1, 4, 4));
+        headerText.setOpaque(false);
 
-        JLabel subtitleLabel = new JLabel("Métricas del negocio en tiempo real consultadas desde MySQL mediante Arquitectura Hexagonal");
+        JLabel titleLabel = new JLabel("AGRONA Jardinería");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        titleLabel.setForeground(new Color(0x2E, 0xCC, 0x71)); // Verde Esmeralda
+
+        JLabel subtitleLabel = new JLabel("Sistema Empresarial de Gestión | Panel de Control & Métricas en Tiempo Real");
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subtitleLabel.setForeground(Color.GRAY);
+        subtitleLabel.setForeground(new Color(0x94, 0xA3, 0x98));
 
-        headerPanel.add(titleLabel);
-        headerPanel.add(subtitleLabel);
+        headerText.add(titleLabel);
+        headerText.add(subtitleLabel);
+        headerPanel.add(headerText, BorderLayout.WEST);
+
         panel.add(headerPanel, BorderLayout.NORTH);
 
-        // 2. Panel central con las 3 tarjetas de KPIs
-        JPanel kpiGrid = new JPanel(new GridLayout(1, 3, 25, 25));
+        // 2. Contenedor central: Tarjetas KPI + Barra de Acciones + Banner Informativo
+        JPanel centerContainer = new JPanel();
+        centerContainer.setLayout(new BoxLayout(centerContainer, BoxLayout.Y_AXIS));
+        centerContainer.setOpaque(false);
+
+        // Grilla de las 3 KPI Cards con bordes redondeados y línea lateral en verde brillante
+        JPanel kpiGrid = new JPanel(new GridLayout(1, 3, 24, 24));
         kpiGrid.setOpaque(false);
+        kpiGrid.setMaximumSize(new Dimension(Short.MAX_VALUE, 175));
 
-        lblTotalClientes = new JLabel("0", SwingConstants.CENTER);
-        lblTotalProductos = new JLabel("0", SwingConstants.CENTER);
-        lblTotalPedidos = new JLabel("0", SwingConstants.CENTER);
+        lblTotalClientes = new JLabel("0", SwingConstants.LEFT);
+        lblTotalProductos = new JLabel("0", SwingConstants.LEFT);
+        lblTotalPedidos = new JLabel("0", SwingConstants.LEFT);
 
-        JPanel cardClientes = crearTarjetaKpi("TOTAL DE CLIENTES", lblTotalClientes, "Cartera activa registrada en el sistema", new Color(76, 175, 80));
-        JPanel cardProductos = crearTarjetaKpi("TOTAL DE PRODUCTOS", lblTotalProductos, "Variedad de artículos en catálogo/inventario", new Color(66, 165, 245));
-        JPanel cardPedidos = crearTarjetaKpi("TOTAL DE PEDIDOS", lblTotalPedidos, "Órdenes de compra y despachos registrados", new Color(255, 138, 101));
+        JPanel cardClientes = crearTarjetaKpi("TOTAL DE CLIENTES", lblTotalClientes, "Cartera activa de clientes registrados", new Color(0x2E, 0xCC, 0x71), "👥");
+        JPanel cardProductos = crearTarjetaKpi("CATÁLOGO DE PRODUCTOS", lblTotalProductos, "Variedad de artículos y plantas en catálogo", new Color(0xA3, 0xE6, 0x35), "🌿");
+        JPanel cardPedidos = crearTarjetaKpi("TOTAL DE PEDIDOS", lblTotalPedidos, "Órdenes de compra y despachos registrados", new Color(0x34, 0xD3, 0x99), "📦");
 
         kpiGrid.add(cardClientes);
         kpiGrid.add(cardProductos);
         kpiGrid.add(cardPedidos);
 
-        // Contenedor medio para centrar la grilla y las acciones
-        JPanel centerContainer = new JPanel(new BorderLayout(20, 20));
-        centerContainer.setOpaque(false);
-        centerContainer.add(kpiGrid, BorderLayout.NORTH);
+        centerContainer.add(kpiGrid);
+        centerContainer.add(Box.createVerticalStrut(25));
 
-        // 3. Barra de Acciones y Botón Actualizar Métricas
-        JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 10));
+        // Barra de Acciones y Refresco
+        JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         bottomBar.setOpaque(false);
 
-        JButton btnRefrescar = new JButton("Actualizar Métricas");
+        JButton btnRefrescar = new JButton("🔄 Actualizar Métricas");
         btnRefrescar.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnRefrescar.setBackground(new Color(0x27, 0xAE, 0x60));
+        btnRefrescar.setForeground(Color.WHITE);
         btnRefrescar.addActionListener(e -> actualizarEstadisticasDashboard());
 
-        JButton btnIrClientes = new JButton("Gestionar Clientes");
+        JButton btnIrClientes = new JButton("👥 Gestionar Clientes");
         btnIrClientes.addActionListener(e -> mostrarPantalla(CARD_CLIENTES));
 
-        JButton btnIrProductos = new JButton("Ver Productos");
+        JButton btnIrProductos = new JButton("🌿 Ver Catálogo");
         btnIrProductos.addActionListener(e -> mostrarPantalla(CARD_PRODUCTOS));
 
-        JButton btnIrPedidos = new JButton("Nuevo Pedido");
+        JButton btnIrPedidos = new JButton("📦 Despacho de Pedidos");
         btnIrPedidos.addActionListener(e -> mostrarPantalla(CARD_PEDIDOS));
 
         bottomBar.add(btnIrClientes);
@@ -307,42 +399,73 @@ public class DashboardFrame extends JFrame {
         bottomBar.add(btnIrPedidos);
         bottomBar.add(btnRefrescar);
 
-        centerContainer.add(bottomBar, BorderLayout.CENTER);
+        centerContainer.add(bottomBar);
+        centerContainer.add(Box.createVerticalStrut(25));
+
+        // Banner Informativo Institucional AGRONA
+        JPanel bannerInfo = new JPanel(new BorderLayout(15, 10));
+        bannerInfo.setOpaque(true);
+        bannerInfo.setBackground(new Color(0x1A, 0x22, 0x1D));
+        bannerInfo.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(new Color(0x2D, 0x3D, 0x33), 1, true),
+                new EmptyBorder(18, 22, 18, 22)
+        ));
+
+        JLabel lblBannerTitle = new JLabel("🌿 Arquitectura Hexagonal & Rendimiento Optimizado");
+        lblBannerTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lblBannerTitle.setForeground(new Color(0x2E, 0xCC, 0x71));
+
+        JLabel lblBannerText = new JLabel("<html>El sistema opera con persistencia pura MySQL JDBC, desacoplamiento absoluto por casos de uso y renderizado acelerado con FlatLaf Dark Theme.<br>Para generar reportes analíticos, utiliza la opción <b>Exportar a Excel (.xlsx)</b> presente en cada módulo.</html>");
+        lblBannerText.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblBannerText.setForeground(new Color(0x94, 0xA3, 0x98));
+
+        bannerInfo.add(lblBannerTitle, BorderLayout.NORTH);
+        bannerInfo.add(lblBannerText, BorderLayout.CENTER);
+
+        centerContainer.add(bannerInfo);
+
         panel.add(centerContainer, BorderLayout.CENTER);
 
         return panel;
     }
 
-    private JPanel crearTarjetaKpi(String titulo, JLabel valorLabel, String pie, Color colorAcento) {
-        JPanel card = new JPanel(new BorderLayout(12, 12));
+    /**
+     * Construye una tarjeta KPI con estética AGRONA: fondo oscuro (#1E2621),
+     * línea lateral izquierda de 6px en verde brillante, borde redondeado y tipografía nítida en blanco.
+     */
+    private JPanel crearTarjetaKpi(String titulo, JLabel valorLabel, String pie, Color colorAcento, String emoji) {
+        JPanel card = new JPanel(new BorderLayout(12, 10));
         card.setOpaque(true);
-        Color cardBg = UIManager.getColor("Panel.background");
-        if (cardBg != null) {
-            // Fondo con contraste sutil sobre el tema oscuro de FlatLaf
-            card.setBackground(new Color(
-                    Math.min(255, cardBg.getRed() + 10),
-                    Math.min(255, cardBg.getGreen() + 10),
-                    Math.min(255, cardBg.getBlue() + 10)));
-        }
+        card.setBackground(new Color(0x1E, 0x26, 0x21));
+
+        // Borde moderno con línea de acento izquierda y contorno redondeado suave
+        Border lineaLateral = BorderFactory.createMatteBorder(0, 6, 0, 0, colorAcento);
+        Border contorno = new LineBorder(new Color(0x2D, 0x3D, 0x33), 1, true);
+        Border padding = new EmptyBorder(20, 22, 20, 22);
+
         card.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(new Color(65, 70, 75), 1, true),
-                new EmptyBorder(22, 22, 22, 22)
+                contorno,
+                BorderFactory.createCompoundBorder(lineaLateral, padding)
         ));
 
-        // Título del indicador con acento de color
-        JLabel lblTitulo = new JLabel(titulo, SwingConstants.CENTER);
+        // 1. Título e Icono superior
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        topPanel.setOpaque(false);
+        JLabel lblTitulo = new JLabel(emoji + " " + titulo);
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblTitulo.setForeground(colorAcento);
+        topPanel.add(lblTitulo);
 
-        // Valor cuantitativo principal
-        valorLabel.setFont(new Font("Segoe UI", Font.BOLD, 52));
+        // 2. Valor cuantitativo grande, nítido y blanco
+        valorLabel.setFont(new Font("Segoe UI", Font.BOLD, 54));
+        valorLabel.setForeground(new Color(0xF1, 0xF5, 0xF2));
 
-        // Subtexto descriptivo al pie
-        JLabel lblPie = new JLabel(pie, SwingConstants.CENTER);
+        // 3. Subtexto explicativo al pie
+        JLabel lblPie = new JLabel(pie, SwingConstants.LEFT);
         lblPie.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblPie.setForeground(new Color(175, 180, 185));
+        lblPie.setForeground(new Color(0x94, 0xA3, 0x98));
 
-        card.add(lblTitulo, BorderLayout.NORTH);
+        card.add(topPanel, BorderLayout.NORTH);
         card.add(valorLabel, BorderLayout.CENTER);
         card.add(lblPie, BorderLayout.SOUTH);
 
@@ -399,18 +522,20 @@ public class DashboardFrame extends JFrame {
 
         JLabel titleLabel = new JLabel(tituloModulo);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(new Color(0x2E, 0xCC, 0x71));
         panel.add(titleLabel, gbc);
 
         gbc.gridy++;
         JLabel subtitleLabel = new JLabel("Módulo en construcción");
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        subtitleLabel.setForeground(Color.GRAY);
+        subtitleLabel.setForeground(new Color(0x94, 0xA3, 0x98));
         panel.add(subtitleLabel, gbc);
 
         gbc.gridy++;
         gbc.insets = new Insets(20, 10, 10, 10);
         JLabel infoLabel = new JLabel("<html><center>Esta sección estará disponible en la próxima versión.<br>Actualmente los módulos funcionales son <b>Clientes</b>, <b>Productos</b> y <b>Pedidos</b>.</center></html>");
         infoLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+        infoLabel.setForeground(new Color(0x94, 0xA3, 0x98));
         panel.add(infoLabel, gbc);
 
         return panel;
@@ -433,15 +558,14 @@ public class DashboardFrame extends JFrame {
 
     /**
      * Método estático y recursivo que aplica opacidad y color de fondo sólido
-     * a todos los contenedores anidados (JPanel, JScrollPane, JViewport, JSplitPane, JTabbedPane)
-     * para eliminar de raíz el desgarro de pantalla o 'ghosting' en Swing.
+     * a todos los contenedores anidados para eliminar el ghosting en Swing.
      */
     public static void hacerComponentesOpacos(Container parent) {
         if (parent == null) return;
 
         Color panelBg = UIManager.getColor("Panel.background");
         if (panelBg == null) {
-            panelBg = new Color(30, 31, 34);
+            panelBg = new Color(0x12, 0x16, 0x14);
         }
 
         if (parent instanceof JPanel || parent instanceof JScrollPane || parent instanceof JViewport ||
@@ -489,21 +613,21 @@ public class DashboardFrame extends JFrame {
         cardLayout.show(contentPanel, cardName);
         this.getContentPane().revalidate();
         this.getContentPane().repaint();
-        java.awt.Toolkit.getDefaultToolkit().sync(); // Fuerza la sincronización del búfer gráfico del SO
+        java.awt.Toolkit.getDefaultToolkit().sync();
         actualizarBarraEstado("Módulo activo: " + cardName.replace("CARD_", ""));
     }
 
     public void actualizarBarraEstado(String mensaje) {
         if (statusLabel != null) {
-            statusLabel.setText(" " + mensaje + " | Base de datos: Conectada");
+            statusLabel.setText(" " + mensaje + " | Base de datos: Conectada (MySQL Docker) | AGRONA Jardinería v1.0");
         }
     }
 
     /**
-     * Método de inicio para lanzar el Dashboard con FlatDarkLaf.
+     * Método de inicio para lanzar el Dashboard con la identidad visual AGRONA.
      */
     public static void iniciar() {
-        FlatDarkLaf.setup();
+        configurarTemaAgrona();
         SwingUtilities.invokeLater(() -> {
             DashboardFrame frame = new DashboardFrame();
             frame.setVisible(true);
@@ -514,4 +638,3 @@ public class DashboardFrame extends JFrame {
         iniciar();
     }
 }
-
