@@ -520,30 +520,6 @@ public class DashboardFrame extends JFrame {
         visualContainer.add(panelAccesos, BorderLayout.EAST);
 
         mainContent.add(visualContainer);
-        mainContent.add(Box.createVerticalStrut(20));
-
-        // 4. Banner Informativo Institucional
-        JPanel bannerInfo = new JPanel(new BorderLayout(15, 8));
-        bannerInfo.setOpaque(true);
-        bannerInfo.setBackground(new Color(0x1A, 0x22, 0x1D));
-        bannerInfo.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(new Color(0x2D, 0x3D, 0x33), 1, true),
-                new EmptyBorder(14, 18, 14, 18)
-        ));
-
-        JLabel lblBannerTitle = new JLabel("🌿 Arquitectura Hexagonal — Desacoplamiento & Rendimiento Óptimo");
-        lblBannerTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblBannerTitle.setForeground(new Color(0x2E, 0xCC, 0x71));
-
-        JLabel lblBannerText = new JLabel("<html>Operaciones desacopladas por puertos y adaptadores JDBC sobre MySQL. " +
-                "Utiliza los botones de navegación o la barra superior para gestionar transacciones en tiempo real.</html>");
-        lblBannerText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblBannerText.setForeground(new Color(0x94, 0xA3, 0x98));
-
-        bannerInfo.add(lblBannerTitle, BorderLayout.NORTH);
-        bannerInfo.add(lblBannerText, BorderLayout.CENTER);
-
-        mainContent.add(bannerInfo);
 
         // Envolver en ScrollPane para adaptabilidad a cualquier resolución
         JScrollPane scrollPane = new JScrollPane(mainContent);
