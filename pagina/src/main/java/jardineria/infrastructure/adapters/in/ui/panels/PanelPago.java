@@ -328,6 +328,7 @@ public class PanelPago extends JPanel {
         }
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private Pago construirPagoDesdeFormulario() {
         String idTrans = txtIdTransaccion.getText().trim();
         String fechaStr = txtFechaPago.getText().trim();
@@ -337,7 +338,7 @@ public class PanelPago extends JPanel {
         if (idTrans.isEmpty()) throw new BusinessRuleException("El ID de transacción es obligatorio.");
         if (totalStr.isEmpty()) throw new BusinessRuleException("El monto total es obligatorio.");
 
-        ComboItem<Integer> clienteItem = (ComboItem<Integer>) cmbCliente.getSelectedItem();
+        ComboItem<Integer> clienteItem = cmbCliente.getSelectedIndex() >= 0 ? cmbCliente.getItemAt(cmbCliente.getSelectedIndex()) : null;
         if (clienteItem == null || clienteItem.value() == null) {
             throw new BusinessRuleException("Debe seleccionar un cliente para el pago.");
         }

@@ -10,6 +10,7 @@ import jardineria.application.ports.in.PedidoUseCasePort;
 import jardineria.application.ports.in.ProductoUseCasePort;
 import jardineria.infrastructure.adapters.in.ui.components.GraficoBarrasAgrona;
 import jardineria.infrastructure.adapters.in.ui.components.HeroAgronaPanel;
+import jardineria.infrastructure.adapters.in.ui.panels.PanelGamaProducto;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -132,8 +133,12 @@ public class DashboardFrame extends JFrame {
         // Añadir tarjeta de inicio con Dashboard ejecutivo y gráficos
         registrarPantalla(createHomePanel(), CARD_HOME);
 
-        // Pantalla de gama como placeholder hasta su implementación
-        registrarPantalla(createPlaceholderPanel("Gamas de Productos"), CARD_GAMAS);
+        // Inicializar pantalla de gamas con el caso de uso si está disponible
+        if (gamaUseCase != null) {
+            registrarPantalla(new PanelGamaProducto(gamaUseCase), CARD_GAMAS);
+        } else {
+            registrarPantalla(createPlaceholderPanel("Gamas de Productos"), CARD_GAMAS);
+        }
 
         add(contentPanel, BorderLayout.CENTER);
 
@@ -406,7 +411,14 @@ public class DashboardFrame extends JFrame {
         this.empleadoUseCase = empleadoUseCase;
         this.pagoUseCase = pagoUseCase;
         this.gamaUseCase = gamaUseCase;
+        if (gamaUseCase != null) {
+            registrarPantalla(new PanelGamaProducto(gamaUseCase), CARD_GAMAS);
+        }
         actualizarEstadisticasDashboard();
+    }
+
+    public GamaProductoUseCasePort getGamaUseCase() {
+        return gamaUseCase;
     }
 
     private JPanel createHomePanel() {

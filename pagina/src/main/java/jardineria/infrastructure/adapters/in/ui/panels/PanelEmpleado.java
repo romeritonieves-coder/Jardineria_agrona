@@ -407,6 +407,7 @@ public class PanelEmpleado extends JPanel {
         }
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private Empleado construirEmpleadoDesdeFormulario() {
         String codTexto = txtCodigoEmpleado.getText().trim();
         String nom = txtNombre.getText().trim();
@@ -425,14 +426,14 @@ public class PanelEmpleado extends JPanel {
         int codigo = Integer.parseInt(codTexto);
 
         // Oficina seleccionada
-        ComboItem<String> ofiItem = (ComboItem<String>) cmbOficina.getSelectedItem();
+        ComboItem<String> ofiItem = cmbOficina.getSelectedIndex() >= 0 ? cmbOficina.getItemAt(cmbOficina.getSelectedIndex()) : null;
         if (ofiItem == null || ofiItem.value() == null) {
             throw new BusinessRuleException("Debe seleccionar una oficina válida para el empleado.");
         }
         Oficina ofi = Oficina.builder().codigoOficina(ofiItem.value()).build();
 
         // Jefe seleccionado
-        ComboItem<Integer> jefeItem = (ComboItem<Integer>) cmbJefe.getSelectedItem();
+        ComboItem<Integer> jefeItem = cmbJefe.getSelectedIndex() >= 0 ? cmbJefe.getItemAt(cmbJefe.getSelectedIndex()) : null;
         Empleado jefe = null;
         if (jefeItem != null && jefeItem.value() != null) {
             jefe = Empleado.builder().codigoEmpleado(jefeItem.value()).build();

@@ -367,3 +367,4 @@ public class HeroAgronaPanel extends JPanel {
         }
     }
 }
+
