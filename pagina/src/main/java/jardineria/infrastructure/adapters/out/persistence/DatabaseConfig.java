@@ -34,10 +34,30 @@ public class DatabaseConfig {
     }
 
     public Connection getConnection() throws SQLException {
-        String url = properties.getProperty("db.url", "jdbc:mysql://localhost:3306/jardineria?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
-        String user = properties.getProperty("db.user", "root");
-        String password = properties.getProperty("db.password", "root");
-        return DriverManager.getConnection(url, user, password);
+        String configuredUrl = properties.getProperty("db.url", "jdbc:mysql://localhost:3307/jardineria?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
+        String configuredUser = properties.getProperty("db.user", "root");
+        String configuredPassword = properties.getProperty("db.password", "root2026");
+
+        try {
+            return DriverManager.getConnection(configuredUrl, configuredUser, configuredPassword);
+        } catch (SQLException primaryEx) {
+            // Fallback inteligente para entornos Docker locales donde el puerto mapeado sea 3307 o 3306
+            String fallbackUrl = configuredUrl.contains(":3307") ?
+                    configuredUrl.replace(":3307", ":3306") :
+                    configuredUrl.replace(":3306", ":3307");
+            try {
+                return DriverManager.getConnection(fallbackUrl, configuredUser, configuredPassword);
+            } catch (SQLException fallbackEx) {
+                // Probar con contraseña alternativa "root" si falló con "root2026"
+                try {
+                    return DriverManager.getConnection(configuredUrl, configuredUser, "root");
+                } catch (SQLException ignored) {}
+                try {
+                    return DriverManager.getConnection(fallbackUrl, configuredUser, "root");
+                } catch (SQLException ignored) {}
+                throw primaryEx;
+            }
+        }
     }
 }
 

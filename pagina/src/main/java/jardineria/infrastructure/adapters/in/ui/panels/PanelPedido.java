@@ -78,7 +78,7 @@ public class PanelPedido extends JPanel {
 
     private void initComponents() {
         // Título del módulo
-        JLabel lblTitulo = new JLabel("📦 Gestión y Administración de Pedidos");
+        JLabel lblTitulo = new JLabel("Gestión y Administración de Pedidos");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitulo.setForeground(new Color(0x2E, 0xCC, 0x71));
         lblTitulo.setBorder(new EmptyBorder(0, 0, 10, 0));
@@ -538,7 +538,13 @@ public class PanelPedido extends JPanel {
         }
 
         int codPedido = Integer.parseInt(codPedStr);
+        if (codPedido <= 0) {
+            throw new BusinessRuleException("El código del pedido debe ser un entero positivo mayor a cero.");
+        }
         int codCliente = Integer.parseInt(codCliStr);
+        if (codCliente <= 0) {
+            throw new BusinessRuleException("El código del cliente debe ser un entero positivo mayor a cero.");
+        }
 
         LocalDate fechaPedido = !txtFechaPedido.getText().trim().isEmpty()
                 ? LocalDate.parse(txtFechaPedido.getText().trim()) : LocalDate.now();
@@ -607,6 +613,10 @@ public class PanelPedido extends JPanel {
             BigDecimal precioUnitario = BigDecimal.ZERO;
             if (!precioStr.isEmpty()) {
                 precioUnitario = new BigDecimal(precioStr);
+                if (precioUnitario.compareTo(BigDecimal.ZERO) < 0) {
+                    mostrarError("Precio Inválido", "El precio unitario no puede ser negativo.");
+                    return;
+                }
             }
 
             BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(cantidad));

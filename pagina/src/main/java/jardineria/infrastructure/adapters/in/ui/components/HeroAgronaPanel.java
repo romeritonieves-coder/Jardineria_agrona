@@ -11,11 +11,11 @@ import java.util.function.Consumer;
 
 /**
  * Panel Hero de Bienvenida para el Dashboard de AGRONA Jardinería.
- * Replica el diseño de alta gama de la plantilla web oficial con:
- * - Fondo ambiental oscuro con gradientes profundos y texturas vegetales.
- * - Logotipo corporativo de gran escala con animación de flotación suave en Swing.
- * - Tipografía y jerarquía corporativa ("Jardinería con Carácter", "Jardines que se sienten vivos").
- * - Botones de llamada a la acción (CTA) con acentos en verde lima y esmeralda.
+ * Aplica el estilo visual de alta gama de la plantilla web oficial con:
+ * - Paleta forestal suave y elegante (#161F1A / #1B2620).
+ * - Logotipo oficial grande flotante animado con Swing Timer.
+ * - Iconos vectoriales limpios sin caracteres rotos (AgronaIcons).
+ * - Franja corporativa "Nuestra Especialidad: Diseño • Cuidado • Paisajismo • Vida Verde".
  */
 public class HeroAgronaPanel extends JPanel {
 
@@ -25,83 +25,89 @@ public class HeroAgronaPanel extends JPanel {
     public HeroAgronaPanel(Consumer<String> navigationHandler) {
         this.navigationHandler = navigationHandler;
         setOpaque(true);
-        setBackground(new Color(0x0C, 0x12, 0x0E));
-        setLayout(new BorderLayout(24, 0));
-        setBorder(new EmptyBorder(32, 40, 32, 40));
-        setPreferredSize(new Dimension(980, 380));
-        setMinimumSize(new Dimension(800, 340));
+        setBackground(new Color(0x16, 0x1F, 0x1A)); // Fondo forestal suave
+        setLayout(new BorderLayout(24, 16));
+        setBorder(new EmptyBorder(24, 32, 28, 32));
+        setMinimumSize(new Dimension(720, 360));
 
         initComponents();
     }
 
     private void initComponents() {
-        // Columna Izquierda: Jerarquía tipográfica y llamadas a la acción
+        // Franja superior de marca (Especialidad Agrona)
+        JPanel topStrip = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        topStrip.setOpaque(false);
+
+        JLabel lblEspecialidadTag = new JLabel("NUESTRA ESPECIALIDAD");
+        lblEspecialidadTag.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        lblEspecialidadTag.setForeground(new Color(0xBE, 0xF2, 0x64)); // Lima suave
+
+        JLabel lblEspecialidadItems = new JLabel("•  DISEÑO   •   CUIDADO   •   PAISAJISMO   •   VIDA VERDE");
+        lblEspecialidadItems.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblEspecialidadItems.setForeground(new Color(0xE2, 0xEB, 0xE4));
+
+        topStrip.add(lblEspecialidadTag);
+        topStrip.add(lblEspecialidadItems);
+        add(topStrip, BorderLayout.NORTH);
+
+        // Contenedor Central: Columna de texto a la izquierda, logo flotante a la derecha
+        JPanel centerContainer = new JPanel(new GridBagLayout());
+        centerContainer.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // 1. Columna Izquierda: Jerarquía de Marca
         JPanel leftPanel = new JPanel();
         leftPanel.setOpaque(false);
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
 
-        // 1. Subtítulo superior corporativo con línea en verde lima
-        JPanel preTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        preTitlePanel.setOpaque(false);
-        preTitlePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         JLabel lblPreTitle = new JLabel("——  JARDINERÍA CON CARÁCTER");
         lblPreTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblPreTitle.setForeground(new Color(0xA3, 0xE6, 0x35)); // Verde Lima brillante
-        lblPreTitle.setToolTipText("Lema oficial AGRONA");
-        preTitlePanel.add(lblPreTitle);
+        lblPreTitle.setForeground(new Color(0xA3, 0xE6, 0x35)); // Verde Lima
+        leftPanel.add(lblPreTitle);
+        leftPanel.add(Box.createVerticalStrut(10));
 
-        leftPanel.add(preTitlePanel);
-        leftPanel.add(Box.createVerticalStrut(14));
-
-        // 2. Título Principal en tipografía grande, sólida y blanca
         JLabel lblTitle1 = new JLabel("JARDINES QUE");
-        lblTitle1.setFont(new Font("Segoe UI", Font.BOLD, 38));
+        lblTitle1.setFont(new Font("Segoe UI", Font.BOLD, 36));
         lblTitle1.setForeground(Color.WHITE);
-        lblTitle1.setAlignmentX(Component.LEFT_ALIGNMENT);
+        leftPanel.add(lblTitle1);
 
         JLabel lblTitle2 = new JLabel("SE SIENTEN VIVOS.");
-        lblTitle2.setFont(new Font("Segoe UI", Font.BOLD, 38));
+        lblTitle2.setFont(new Font("Segoe UI", Font.BOLD, 36));
         lblTitle2.setForeground(new Color(0xF1, 0xF5, 0xF2));
-        lblTitle2.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        leftPanel.add(lblTitle1);
         leftPanel.add(lblTitle2);
-        leftPanel.add(Box.createVerticalStrut(14));
+        leftPanel.add(Box.createVerticalStrut(12));
 
-        // 3. Párrafo descriptivo de la marca
-        JLabel lblDescripcion = new JLabel("<html><p style='width: 440px; line-height: 145%;'>" +
+        JLabel lblDescripcion = new JLabel("<html><p style='width: 420px; line-height: 140%;'>" +
                 "Diseñamos, transformamos y cuidamos espacios verdes con una mirada precisa, " +
                 "natural y profundamente humana.</p></html>");
-        lblDescripcion.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        lblDescripcion.setForeground(new Color(0xA6, 0xBA, 0xAC));
-        lblDescripcion.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblDescripcion.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblDescripcion.setForeground(new Color(0xA3, 0xB5, 0xAA));
         leftPanel.add(lblDescripcion);
-        leftPanel.add(Box.createVerticalStrut(24));
+        leftPanel.add(Box.createVerticalStrut(20));
 
-        // 4. Fila de Botones de Acción (CTA)
-        JPanel ctaRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
+        // Fila de Botones de Acción
+        JPanel ctaRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         ctaRow.setOpaque(false);
-        ctaRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Botón principal de estilo lima con texto oscuro de alto contraste
-        JButton btnCtaPrimary = new JButton("HABLEMOS DE TU ESPACIO  ↗") {
+        JButton btnCtaPrimary = new JButton("HABLEMOS DE TU ESPACIO", AgronaIcons.createArrowUpRightIcon(14, new Color(0x0C, 0x14, 0x0E))) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 Color bg = getModel().isPressed() ? new Color(0x8C, 0xD4, 0x22) :
-                           getModel().isRollover() ? new Color(0xB5, 0xF5, 0x48) : new Color(0xA3, 0xE6, 0x35);
+                           getModel().isRollover() ? new Color(0xBE, 0xF2, 0x64) : new Color(0xA3, 0xE6, 0x35);
                 g2.setColor(bg);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-        btnCtaPrimary.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnCtaPrimary.setHorizontalTextPosition(SwingConstants.LEFT);
+        btnCtaPrimary.setIconTextGap(8);
+        btnCtaPrimary.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnCtaPrimary.setForeground(new Color(0x0C, 0x14, 0x0E));
         btnCtaPrimary.setContentAreaFilled(false);
-        btnCtaPrimary.setBorder(new EmptyBorder(10, 20, 10, 20));
+        btnCtaPrimary.setBorder(new EmptyBorder(10, 18, 10, 18));
         btnCtaPrimary.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnCtaPrimary.setFocusPainted(false);
         btnCtaPrimary.addActionListener(e -> {
@@ -110,14 +116,15 @@ public class HeroAgronaPanel extends JPanel {
             }
         });
 
-        // Botón secundario tipo enlace o ghost
-        JButton btnCtaSecondary = new JButton("CONOCE NUESTROS SERVICIOS  ›");
-        btnCtaSecondary.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnCtaSecondary.setForeground(new Color(0x2E, 0xCC, 0x71));
+        JButton btnCtaSecondary = new JButton("CONOCE NUESTROS SERVICIOS", AgronaIcons.createCheckIcon(13, new Color(0x22, 0xC5, 0x5E)));
+        btnCtaSecondary.setHorizontalTextPosition(SwingConstants.LEFT);
+        btnCtaSecondary.setIconTextGap(8);
+        btnCtaSecondary.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnCtaSecondary.setForeground(new Color(0x22, 0xC5, 0x5E));
         btnCtaSecondary.setContentAreaFilled(false);
         btnCtaSecondary.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(0x27, 0xAE, 0x60, 140), 1, true),
-                new EmptyBorder(9, 18, 9, 18)
+                BorderFactory.createLineBorder(new Color(0x38, 0x4D, 0x44), 1, true),
+                new EmptyBorder(9, 16, 9, 16)
         ));
         btnCtaSecondary.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnCtaSecondary.setFocusPainted(false);
@@ -130,33 +137,36 @@ public class HeroAgronaPanel extends JPanel {
         ctaRow.add(btnCtaPrimary);
         ctaRow.add(btnCtaSecondary);
         leftPanel.add(ctaRow);
-        leftPanel.add(Box.createVerticalStrut(24));
+        leftPanel.add(Box.createVerticalStrut(18));
 
-        // 5. Marca de pie corporativa: (A)(G)(R) Una identidad que crece contigo
+        // Tagline inferior
         JPanel badgeRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         badgeRow.setOpaque(false);
-        badgeRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel lblBadgeA = crearBadgeLetra("A");
-        JLabel lblBadgeG = crearBadgeLetra("G");
-        JLabel lblBadgeR = crearBadgeLetra("R");
+        badgeRow.add(crearBadgeLetra("A"));
+        badgeRow.add(crearBadgeLetra("G"));
+        badgeRow.add(crearBadgeLetra("R"));
 
         JLabel lblBadgeText = new JLabel("  Una identidad que crece contigo");
         lblBadgeText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblBadgeText.setForeground(new Color(0x73, 0x8C, 0x7A));
-
-        badgeRow.add(lblBadgeA);
-        badgeRow.add(lblBadgeG);
-        badgeRow.add(lblBadgeR);
+        lblBadgeText.setForeground(new Color(0x7D, 0x93, 0x86));
         badgeRow.add(lblBadgeText);
         leftPanel.add(badgeRow);
 
-        add(leftPanel, BorderLayout.CENTER);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.60;
+        gbc.fill = GridBagConstraints.BOTH;
+        centerContainer.add(leftPanel, gbc);
 
-        // Columna Derecha: Componente animado del Logotipo Flotante
+        // 2. Columna Derecha: Logotipo grande animado
         logoFlotante = new LogoFlotanteComponent();
-        logoFlotante.setPreferredSize(new Dimension(340, 340));
-        add(logoFlotante, BorderLayout.EAST);
+        logoFlotante.setPreferredSize(new Dimension(300, 300));
+        gbc.gridx = 1;
+        gbc.weightx = 0.40;
+        gbc.fill = GridBagConstraints.BOTH;
+        centerContainer.add(logoFlotante, gbc);
+
+        add(centerContainer, BorderLayout.CENTER);
     }
 
     private JLabel crearBadgeLetra(String letra) {
@@ -165,9 +175,9 @@ public class HeroAgronaPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(0x1B, 0x2A, 0x20));
+                g2.setColor(new Color(0x23, 0x30, 0x2B));
                 g2.fillOval(1, 1, getWidth() - 2, getHeight() - 2);
-                g2.setColor(new Color(0x2E, 0xCC, 0x71, 180));
+                g2.setColor(new Color(0x38, 0x4D, 0x44));
                 g2.drawOval(1, 1, getWidth() - 3, getHeight() - 3);
                 g2.dispose();
                 super.paintComponent(g);
@@ -175,7 +185,7 @@ public class HeroAgronaPanel extends JPanel {
         };
         lbl.setPreferredSize(new Dimension(22, 22));
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        lbl.setForeground(new Color(0xA3, 0xE6, 0x35));
+        lbl.setForeground(new Color(0xBE, 0xF2, 0x64));
         return lbl;
     }
 
@@ -189,69 +199,44 @@ public class HeroAgronaPanel extends JPanel {
         int w = getWidth();
         int h = getHeight();
 
-        // 1. Fondo base oscuro profundo
-        g2.setColor(new Color(0x0C, 0x12, 0x0E));
+        // Fondo forestal suave #161F1A
+        g2.setColor(new Color(0x16, 0x1F, 0x1A));
         g2.fillRect(0, 0, w, h);
 
-        // 2. Gradiente radial esmeralda brillante detrás del logotipo flotante (derecha)
-        Point2D centerGlow = new Point2D.Float(w * 0.78f, h * 0.46f);
+        // Gradiente radial esmeralda suave detrás del logo
+        Point2D centerGlow = new Point2D.Float(w * 0.78f, h * 0.48f);
         float radiusGlow = Math.max(w * 0.45f, 320f);
-        float[] distGlow = {0.0f, 0.40f, 0.75f, 1.0f};
+        float[] distGlow = {0.0f, 0.45f, 0.80f, 1.0f};
         Color[] colorsGlow = {
-                new Color(0x1D, 0x48, 0x29, 130), // Halo esmeralda profundo
-                new Color(0x13, 0x2E, 0x1B, 75),
-                new Color(0x0E, 0x1A, 0x12, 30),
-                new Color(0x0C, 0x12, 0x0E, 0)
+                new Color(0x23, 0x3B, 0x2E, 130),
+                new Color(0x1B, 0x2A, 0x22, 80),
+                new Color(0x16, 0x1F, 0x1A, 30),
+                new Color(0x16, 0x1F, 0x1A, 0)
         };
         RadialGradientPaint radialGlow = new RadialGradientPaint(centerGlow, radiusGlow, distGlow, colorsGlow);
         g2.setPaint(radialGlow);
         g2.fillRect(0, 0, w, h);
 
-        // 3. Gradiente sutil en la esquina superior izquierda
-        Point2D centerTopLeft = new Point2D.Float(w * 0.15f, h * 0.10f);
-        float[] distTL = {0.0f, 1.0f};
-        Color[] colorsTL = {
-                new Color(0x15, 0x2C, 0x1C, 65),
-                new Color(0x0C, 0x12, 0x0E, 0)
-        };
-        RadialGradientPaint radialTL = new RadialGradientPaint(centerTopLeft, 260f, distTL, colorsTL);
-        g2.setPaint(radialTL);
-        g2.fillRect(0, 0, w, h);
+        // Siluetas orgánicas vegetales tenues
+        g2.setColor(new Color(0x22, 0xC5, 0x5E, 16));
+        GeneralPath leaf1 = new GeneralPath();
+        leaf1.moveTo(w - 70, 0);
+        leaf1.curveTo(w - 40, 70, w - 90, 130, w - 10, 160);
+        leaf1.curveTo(w - 5, 90, w - 15, 30, w, 0);
+        leaf1.closePath();
+        g2.fill(leaf1);
 
-        // 4. Siluetas orgánicas vegetales en las esquinas (Hojas estilizadas sutiles)
-        dibujarHojasSiluetas(g2, w, h);
+        GeneralPath leaf2 = new GeneralPath();
+        leaf2.moveTo(0, h - 90);
+        leaf2.curveTo(60, h - 110, 90, h - 50, 0, h - 20);
+        leaf2.closePath();
+        g2.fill(leaf2);
 
-        // 5. Borde inferior suave separador
-        g2.setColor(new Color(0x1F, 0x2D, 0x24));
+        // Borde inferior sutil
+        g2.setColor(new Color(0x28, 0x38, 0x30));
         g2.drawLine(0, h - 1, w, h - 1);
 
         g2.dispose();
-    }
-
-    private void dibujarHojasSiluetas(Graphics2D g2, int w, int h) {
-        g2.setColor(new Color(0x27, 0xAE, 0x60, 18)); // Verde muy sutil y elegante
-
-        // Hoja en esquina superior derecha
-        GeneralPath hoja1 = new GeneralPath();
-        hoja1.moveTo(w - 60, 0);
-        hoja1.curveTo(w - 40, 60, w - 80, 120, w - 10, 140);
-        hoja1.curveTo(w - 5, 80, w - 15, 30, w, 0);
-        hoja1.closePath();
-        g2.fill(hoja1);
-
-        // Hoja en esquina inferior derecha detrás del logo
-        GeneralPath hoja2 = new GeneralPath();
-        hoja2.moveTo(w - 200, h);
-        hoja2.curveTo(w - 170, h - 70, w - 90, h - 90, w - 40, h);
-        hoja2.closePath();
-        g2.fill(hoja2);
-
-        // Hoja lateral izquierda tenue
-        GeneralPath hoja3 = new GeneralPath();
-        hoja3.moveTo(0, h - 100);
-        hoja3.curveTo(50, h - 120, 80, h - 60, 0, h - 30);
-        hoja3.closePath();
-        g2.fill(hoja3);
     }
 
     /**
@@ -271,21 +256,19 @@ public class HeroAgronaPanel extends JPanel {
         }
 
         private void cargarLogo() {
-            ImageIcon icon = DashboardFrame.obtenerLogoIcon(270, 270);
+            ImageIcon icon = DashboardFrame.obtenerLogoIcon(250, 250);
             if (icon != null) {
                 this.logoImage = icon.getImage();
             }
         }
 
         private void iniciarAnimacion() {
-            // Temporizador Swing suave a ~33 FPS
             timerFlotacion = new Timer(30, e -> {
-                angulo += 0.042; // Velocidad de oscilación suave y natural
+                angulo += 0.042;
                 if (angulo >= Math.PI * 2) {
                     angulo = 0.0;
                 }
-                // Movimiento vertical flotante de +/- 10 píxeles
-                offsetY = (int) (Math.sin(angulo) * 10);
+                offsetY = (int) (Math.sin(angulo) * 9);
                 repaint();
             });
             timerFlotacion.start();
@@ -319,43 +302,43 @@ public class HeroAgronaPanel extends JPanel {
             int h = getHeight();
 
             int centerX = w / 2;
-            int centerY = h / 2 - 10;
+            int centerY = h / 2 - 8;
 
-            // 1. Sombra elíptica dinámica en el suelo: se ensancha y contrae con la flotación
-            int anchoSombra = 210 - (offsetY * 2);
-            int altoSombra = 28 - (offsetY / 2);
-            int sombraY = centerY + 130;
+            // Sombra elíptica dinámica en el suelo
+            int anchoSombra = 190 - (offsetY * 2);
+            int altoSombra = 24 - (offsetY / 2);
+            int sombraY = centerY + 120;
 
             Point2D centerSombra = new Point2D.Float(centerX, sombraY);
-            float[] distSombra = {0.0f, 0.5f, 1.0f};
+            float[] distSombra = {0.0f, 0.55f, 1.0f};
             Color[] colorsSombra = {
-                    new Color(0x05, 0x0A, 0x07, 180),
-                    new Color(0x07, 0x12, 0x0A, 80),
-                    new Color(0x0C, 0x12, 0x0E, 0)
+                    new Color(0x0E, 0x14, 0x10, 160),
+                    new Color(0x12, 0x1A, 0x14, 70),
+                    new Color(0x16, 0x1F, 0x1A, 0)
             };
             RadialGradientPaint radialSombra = new RadialGradientPaint(centerSombra, anchoSombra / 2.0f, distSombra, colorsSombra);
             g2.setPaint(radialSombra);
             g2.fillOval(centerX - anchoSombra / 2, sombraY - altoSombra / 2, anchoSombra, altoSombra);
 
-            // 2. Halo verde suave envolvente directamente detrás del logo
+            // Halo suave envolvente
             Point2D centerAura = new Point2D.Float(centerX, centerY + offsetY);
             float[] distAura = {0.0f, 0.65f, 1.0f};
             Color[] colorsAura = {
-                    new Color(0x27, 0xAE, 0x60, 60),
-                    new Color(0x1E, 0x4B, 0x2E, 25),
-                    new Color(0x0C, 0x12, 0x0E, 0)
+                    new Color(0x22, 0xC5, 0x5E, 50),
+                    new Color(0x1E, 0x3B, 0x2A, 20),
+                    new Color(0x16, 0x1F, 0x1A, 0)
             };
-            RadialGradientPaint radialAura = new RadialGradientPaint(centerAura, 150f, distAura, colorsAura);
+            RadialGradientPaint radialAura = new RadialGradientPaint(centerAura, 140f, distAura, colorsAura);
             g2.setPaint(radialAura);
-            g2.fillOval(centerX - 150, centerY + offsetY - 150, 300, 300);
+            g2.fillOval(centerX - 140, centerY + offsetY - 140, 280, 280);
 
-            // 3. Renderizado del Logotipo Oficial con desplazamiento vertical flotante
+            // Logo oficial
             if (logoImage != null) {
                 int imgW = logoImage.getWidth(this);
                 int imgH = logoImage.getHeight(this);
                 if (imgW <= 0 || imgH <= 0) {
-                    imgW = 260;
-                    imgH = 260;
+                    imgW = 240;
+                    imgH = 240;
                 }
                 int imgX = centerX - imgW / 2;
                 int imgY = centerY - imgH / 2 + offsetY;
@@ -367,4 +350,3 @@ public class HeroAgronaPanel extends JPanel {
         }
     }
 }
-

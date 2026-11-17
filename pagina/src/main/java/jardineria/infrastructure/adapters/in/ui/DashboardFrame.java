@@ -8,9 +8,32 @@ import jardineria.application.ports.in.OficinaUseCasePort;
 import jardineria.application.ports.in.PagoUseCasePort;
 import jardineria.application.ports.in.PedidoUseCasePort;
 import jardineria.application.ports.in.ProductoUseCasePort;
+import jardineria.infrastructure.adapters.in.ui.components.AgronaIcons;
 import jardineria.infrastructure.adapters.in.ui.components.GraficoBarrasAgrona;
 import jardineria.infrastructure.adapters.in.ui.components.HeroAgronaPanel;
+import jardineria.infrastructure.adapters.in.ui.panels.PanelCliente;
+import jardineria.infrastructure.adapters.in.ui.panels.PanelEmpleado;
 import jardineria.infrastructure.adapters.in.ui.panels.PanelGamaProducto;
+import jardineria.infrastructure.adapters.in.ui.panels.PanelOficina;
+import jardineria.infrastructure.adapters.in.ui.panels.PanelPago;
+import jardineria.infrastructure.adapters.in.ui.panels.PanelPedido;
+import jardineria.infrastructure.adapters.in.ui.panels.PanelProducto;
+import jardineria.application.services.ClienteService;
+import jardineria.application.services.EmpleadoService;
+import jardineria.application.services.GamaProductoService;
+import jardineria.application.services.OficinaService;
+import jardineria.application.services.PagoService;
+import jardineria.application.services.PedidoService;
+import jardineria.application.services.ProductoService;
+import jardineria.domain.ports.out.*;
+import jardineria.infrastructure.adapters.out.persistence.ClienteRepositoryJdbc;
+import jardineria.infrastructure.adapters.out.persistence.DetallePedidoRepositoryJdbc;
+import jardineria.infrastructure.adapters.out.persistence.EmpleadoRepositoryJdbc;
+import jardineria.infrastructure.adapters.out.persistence.GamaProductoRepositoryJdbc;
+import jardineria.infrastructure.adapters.out.persistence.OficinaRepositoryJdbc;
+import jardineria.infrastructure.adapters.out.persistence.PagoRepositoryJdbc;
+import jardineria.infrastructure.adapters.out.persistence.PedidoRepositoryJdbc;
+import jardineria.infrastructure.adapters.out.persistence.ProductoRepositoryJdbc;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -89,13 +112,23 @@ public class DashboardFrame extends JFrame {
                           GamaProductoUseCasePort gamaUseCase) {
         configurarTemaAgrona();
 
-        this.clienteUseCase = clienteUseCase;
-        this.productoUseCase = productoUseCase;
-        this.pedidoUseCase = pedidoUseCase;
-        this.oficinaUseCase = oficinaUseCase;
-        this.empleadoUseCase = empleadoUseCase;
-        this.pagoUseCase = pagoUseCase;
-        this.gamaUseCase = gamaUseCase;
+        // Inicializar repositorios y servicios por defecto si no son inyectados externamente
+        ClienteRepositoryPort clienteRepo = new ClienteRepositoryJdbc();
+        EmpleadoRepositoryPort empleadoRepo = new EmpleadoRepositoryJdbc();
+        OficinaRepositoryPort oficinaRepo = new OficinaRepositoryJdbc();
+        PagoRepositoryPort pagoRepo = new PagoRepositoryJdbc();
+        GamaProductoRepositoryPort gamaRepo = new GamaProductoRepositoryJdbc();
+        DetallePedidoRepositoryPort detalleRepo = new DetallePedidoRepositoryJdbc();
+        ProductoRepositoryPort productoRepo = new ProductoRepositoryJdbc();
+        PedidoRepositoryPort pedidoRepo = new PedidoRepositoryJdbc();
+
+        this.clienteUseCase = clienteUseCase != null ? clienteUseCase : new ClienteService(clienteRepo, empleadoRepo);
+        this.productoUseCase = productoUseCase != null ? productoUseCase : new ProductoService(productoRepo, gamaRepo, detalleRepo);
+        this.pedidoUseCase = pedidoUseCase != null ? pedidoUseCase : new PedidoService(pedidoRepo, detalleRepo, clienteRepo, productoRepo);
+        this.oficinaUseCase = oficinaUseCase != null ? oficinaUseCase : new OficinaService(oficinaRepo, empleadoRepo);
+        this.empleadoUseCase = empleadoUseCase != null ? empleadoUseCase : new EmpleadoService(empleadoRepo, oficinaRepo, clienteRepo);
+        this.pagoUseCase = pagoUseCase != null ? pagoUseCase : new PagoService(pagoRepo, clienteRepo);
+        this.gamaUseCase = gamaUseCase != null ? gamaUseCase : new GamaProductoService(gamaRepo, productoRepo);
 
         setTitle("AGRONA Jardinería — Sistema de Gestión Empresarial");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -133,12 +166,14 @@ public class DashboardFrame extends JFrame {
         // Añadir tarjeta de inicio con Dashboard ejecutivo y gráficos
         registrarPantalla(createHomePanel(), CARD_HOME);
 
-        // Inicializar pantalla de gamas con el caso de uso si está disponible
-        if (gamaUseCase != null) {
-            registrarPantalla(new PanelGamaProducto(gamaUseCase), CARD_GAMAS);
-        } else {
-            registrarPantalla(createPlaceholderPanel("Gamas de Productos"), CARD_GAMAS);
-        }
+        // Registrar todos los módulos funcionales conectando con los casos de uso
+        registrarPantalla(new PanelCliente(this.clienteUseCase), CARD_CLIENTES);
+        registrarPantalla(new PanelProducto(this.productoUseCase), CARD_PRODUCTOS);
+        registrarPantalla(new PanelGamaProducto(this.gamaUseCase), CARD_GAMAS);
+        registrarPantalla(new PanelPedido(this.pedidoUseCase), CARD_PEDIDOS);
+        registrarPantalla(new PanelPago(this.pagoUseCase, this.clienteUseCase), CARD_PAGOS);
+        registrarPantalla(new PanelEmpleado(this.empleadoUseCase, this.oficinaUseCase), CARD_EMPLEADOS);
+        registrarPantalla(new PanelOficina(this.oficinaUseCase), CARD_OFICINAS);
 
         add(contentPanel, BorderLayout.CENTER);
 
@@ -178,17 +213,17 @@ public class DashboardFrame extends JFrame {
     public static void configurarTemaAgrona() {
         FlatDarkLaf.setup();
 
-        Color fondoGeneral = new Color(0x12, 0x16, 0x14);   // #121614
-        Color fondoPaneles = new Color(0x1E, 0x26, 0x21);   // #1E2621
-        Color fondoElevado = new Color(0x25, 0x32, 0x2A);   // #25322A
-        Color bordeSuave = new Color(0x2D, 0x3D, 0x33);     // #2D3D33
-        Color verdeEsmeralda = new Color(0x2E, 0xCC, 0x71); // #2ECC71 (Acento primario)
-        Color verdeLima = new Color(0xA3, 0xE6, 0x35);      // #A3E635 (Acento secundario)
+        Color fondoGeneral = new Color(0x16, 0x1F, 0x1A);   // #161F1A (Fondo suave forestal)
+        Color fondoPaneles = new Color(0x23, 0x30, 0x2B);   // #23302B (Paneles grisáceos verdosos sobrios)
+        Color fondoElevado = new Color(0x2C, 0x3B, 0x35);   // #2C3B35 (Superficies elevadas e inputs)
+        Color bordeSuave = new Color(0x38, 0x4D, 0x44);     // #384D44 (Bordes sutiles)
+        Color verdeEsmeralda = new Color(0x22, 0xC5, 0x5E); // #22C55E (Acento primario vibrante)
+        Color verdeLima = new Color(0xBE, 0xF2, 0x64);      // #BEF264 (Acento secundario lima fresco)
         Color textoPrincipal = new Color(0xF1, 0xF5, 0xF2);
 
         // 1. Acentos y estilos redondeados modernos
         UIManager.put("Component.accentColor", verdeEsmeralda);
-        UIManager.put("Component.focusColor", new Color(0x2E, 0xCC, 0x71, 100));
+        UIManager.put("Component.focusColor", new Color(0x22, 0xC5, 0x5E, 100));
         UIManager.put("Component.focusedBorderColor", verdeEsmeralda);
         UIManager.put("Component.borderColor", bordeSuave);
         UIManager.put("Component.arc", 12);
@@ -205,20 +240,20 @@ public class DashboardFrame extends JFrame {
 
         // 3. Botones y efectos Hover
         UIManager.put("Button.background", fondoElevado);
-        UIManager.put("Button.hoverBackground", new Color(0x31, 0x43, 0x38));
-        UIManager.put("Button.default.background", new Color(0x27, 0xAE, 0x60));
-        UIManager.put("Button.default.hoverBackground", verdeEsmeralda);
+        UIManager.put("Button.hoverBackground", new Color(0x36, 0x47, 0x40));
+        UIManager.put("Button.default.background", verdeEsmeralda);
+        UIManager.put("Button.default.hoverBackground", new Color(0x16, 0xA3, 0x4A));
         UIManager.put("Button.default.foreground", Color.WHITE);
         UIManager.put("Button.foreground", textoPrincipal);
 
         // 4. Tablas de datos
         UIManager.put("Table.background", fondoPaneles);
-        UIManager.put("Table.alternateRowColor", new Color(0x17, 0x20, 0x1A));
-        UIManager.put("Table.selectionBackground", new Color(0x27, 0xAE, 0x60));
+        UIManager.put("Table.alternateRowColor", new Color(0x1C, 0x27, 0x22));
+        UIManager.put("Table.selectionBackground", verdeEsmeralda);
         UIManager.put("Table.selectionForeground", Color.WHITE);
         UIManager.put("Table.gridColor", bordeSuave);
         UIManager.put("TableHeader.background", fondoElevado);
-        UIManager.put("TableHeader.foreground", verdeEsmeralda);
+        UIManager.put("TableHeader.foreground", verdeLima);
         UIManager.put("TableHeader.separatorColor", bordeSuave);
 
         // 5. Menús y Barras
@@ -228,14 +263,14 @@ public class DashboardFrame extends JFrame {
         UIManager.put("ToolBar.borderColor", bordeSuave);
         UIManager.put("PopupMenu.background", fondoPaneles);
         UIManager.put("PopupMenu.borderColor", verdeEsmeralda);
-        UIManager.put("MenuItem.selectionBackground", new Color(0x27, 0xAE, 0x60));
+        UIManager.put("MenuItem.selectionBackground", verdeEsmeralda);
         UIManager.put("MenuItem.selectionForeground", Color.WHITE);
 
         // 6. Inputs
-        UIManager.put("TextField.background", new Color(0x16, 0x1D, 0x18));
+        UIManager.put("TextField.background", new Color(0x1B, 0x24, 0x20));
         UIManager.put("TextField.foreground", textoPrincipal);
         UIManager.put("TextField.caretColor", verdeLima);
-        UIManager.put("TextArea.background", new Color(0x16, 0x1D, 0x18));
+        UIManager.put("TextArea.background", new Color(0x1B, 0x24, 0x20));
         UIManager.put("TextArea.foreground", textoPrincipal);
 
         // 7. Prevención de ghosting en Swing
@@ -358,28 +393,28 @@ public class DashboardFrame extends JFrame {
             toolBar.addSeparator();
         }
 
-        JButton btnHome = new JButton("📊 Inicio");
+        JButton btnHome = new JButton("Inicio", AgronaIcons.crearIconoHome(16, 16));
         btnHome.addActionListener(e -> mostrarPantalla(CARD_HOME));
 
-        JButton btnClientes = new JButton("👥 Clientes");
+        JButton btnClientes = new JButton("Clientes", AgronaIcons.crearIconoClientes(16, 16));
         btnClientes.addActionListener(e -> mostrarPantalla(CARD_CLIENTES));
 
-        JButton btnPedidos = new JButton("📦 Pedidos");
+        JButton btnPedidos = new JButton("Pedidos", AgronaIcons.crearIconoPedidos(16, 16));
         btnPedidos.addActionListener(e -> mostrarPantalla(CARD_PEDIDOS));
 
-        JButton btnProductos = new JButton("🌿 Catálogo");
+        JButton btnProductos = new JButton("Catálogo", AgronaIcons.crearIconoCatalogo(16, 16));
         btnProductos.addActionListener(e -> mostrarPantalla(CARD_PRODUCTOS));
 
-        JButton btnGamas = new JButton("🏷️ Gamas");
+        JButton btnGamas = new JButton("Gamas", AgronaIcons.crearIconoGamas(16, 16));
         btnGamas.addActionListener(e -> mostrarPantalla(CARD_GAMAS));
 
-        JButton btnPagos = new JButton("💳 Pagos");
+        JButton btnPagos = new JButton("Pagos", AgronaIcons.crearIconoPagos(16, 16));
         btnPagos.addActionListener(e -> mostrarPantalla(CARD_PAGOS));
 
-        JButton btnEmpleados = new JButton("👔 Empleados");
+        JButton btnEmpleados = new JButton("Empleados", AgronaIcons.crearIconoEmpleados(16, 16));
         btnEmpleados.addActionListener(e -> mostrarPantalla(CARD_EMPLEADOS));
 
-        JButton btnOficinas = new JButton("🏢 Oficinas");
+        JButton btnOficinas = new JButton("Oficinas", AgronaIcons.crearIconoOficinas(16, 16));
         btnOficinas.addActionListener(e -> mostrarPantalla(CARD_OFICINAS));
 
         toolBar.add(btnHome);
@@ -425,7 +460,7 @@ public class DashboardFrame extends JFrame {
         JPanel mainContent = new JPanel();
         mainContent.setLayout(new BoxLayout(mainContent, BoxLayout.Y_AXIS));
         mainContent.setOpaque(true);
-        mainContent.setBackground(new Color(0x0C, 0x12, 0x0E));
+        mainContent.setBackground(new Color(0x16, 0x1F, 0x1A));
         mainContent.setBorder(new EmptyBorder(16, 24, 32, 24));
 
         // 1. Hero Section de Alta Gama: Fondo Ambiental, Logotipo Grande Flotante y Marca Oficial
@@ -442,13 +477,13 @@ public class DashboardFrame extends JFrame {
         kpiHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
         kpiHeader.setBorder(new EmptyBorder(0, 4, 10, 4));
 
-        JLabel lblKpiSection = new JLabel("📊 CONTROL OPERATIVO & MÉTRICAS EN TIEMPO REAL");
+        JLabel lblKpiSection = new JLabel("CONTROL OPERATIVO & MÉTRICAS EN TIEMPO REAL");
         lblKpiSection.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        lblKpiSection.setForeground(new Color(0x2E, 0xCC, 0x71));
+        lblKpiSection.setForeground(new Color(0x22, 0xC5, 0x5E));
 
-        JButton btnRefrescarTop = new JButton("🔄 Sincronizar Métricas");
+        JButton btnRefrescarTop = new JButton("Sincronizar Métricas", AgronaIcons.crearIconoRefresh(14, 14));
         btnRefrescarTop.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnRefrescarTop.setBackground(new Color(0x27, 0xAE, 0x60));
+        btnRefrescarTop.setBackground(new Color(0x16, 0xA3, 0x4A));
         btnRefrescarTop.setForeground(Color.WHITE);
         btnRefrescarTop.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnRefrescarTop.addActionListener(e -> actualizarEstadisticasDashboard());
@@ -472,12 +507,12 @@ public class DashboardFrame extends JFrame {
         lblTotalEmpleados = new JLabel("0", SwingConstants.LEFT);
         lblTotalOficinas = new JLabel("0", SwingConstants.LEFT);
 
-        kpiGrid.add(crearTarjetaKpi("CLIENTES ACTIVOS", lblTotalClientes, "Cartera comercial activa", new Color(0x2E, 0xCC, 0x71), "👥"));
-        kpiGrid.add(crearTarjetaKpi("CATÁLOGO PRODUCTOS", lblTotalProductos, "Especies botánicas y artículos", new Color(0xA3, 0xE6, 0x35), "🌿"));
-        kpiGrid.add(crearTarjetaKpi("PEDIDOS GESTIONADOS", lblTotalPedidos, "Órdenes de compra registradas", new Color(0x34, 0xD3, 0x99), "📦"));
-        kpiGrid.add(crearTarjetaKpi("TRANSACCIONES PAGO", lblTotalPagos, "Recaudos y cobros procesados", new Color(0x10, 0xB9, 0x81), "💳"));
-        kpiGrid.add(crearTarjetaKpi("NÓMINA EMPLEADOS", lblTotalEmpleados, "Equipo técnico y comercial", new Color(0x2E, 0xCC, 0x71), "👔"));
-        kpiGrid.add(crearTarjetaKpi("SEDES Y OFICINAS", lblTotalOficinas, "Puntos de operación y sucursales", new Color(0xA3, 0xE6, 0x35), "🏢"));
+        kpiGrid.add(crearTarjetaKpi("CLIENTES ACTIVOS", lblTotalClientes, "Cartera comercial activa", new Color(0x22, 0xC5, 0x5E), AgronaIcons.crearIconoClientes(16, 16)));
+        kpiGrid.add(crearTarjetaKpi("CATÁLOGO PRODUCTOS", lblTotalProductos, "Especies botánicas y artículos", new Color(0xBE, 0xF2, 0x64), AgronaIcons.crearIconoCatalogo(16, 16)));
+        kpiGrid.add(crearTarjetaKpi("PEDIDOS GESTIONADOS", lblTotalPedidos, "Órdenes de compra registradas", new Color(0x34, 0xD3, 0x99), AgronaIcons.crearIconoPedidos(16, 16)));
+        kpiGrid.add(crearTarjetaKpi("TRANSACCIONES PAGO", lblTotalPagos, "Recaudos y cobros procesados", new Color(0x10, 0xB9, 0x81), AgronaIcons.crearIconoPagos(16, 16)));
+        kpiGrid.add(crearTarjetaKpi("NÓMINA EMPLEADOS", lblTotalEmpleados, "Equipo técnico y comercial", new Color(0x22, 0xC5, 0x5E), AgronaIcons.crearIconoEmpleados(16, 16)));
+        kpiGrid.add(crearTarjetaKpi("SEDES Y OFICINAS", lblTotalOficinas, "Puntos de operación y sucursales", new Color(0xBE, 0xF2, 0x64), AgronaIcons.crearIconoOficinas(16, 16)));
 
         mainContent.add(kpiGrid);
         mainContent.add(Box.createVerticalStrut(24));
@@ -494,27 +529,27 @@ public class DashboardFrame extends JFrame {
         // Panel lateral de accesos directos
         JPanel panelAccesos = new JPanel(new GridLayout(7, 1, 8, 8));
         panelAccesos.setOpaque(false);
-        panelAccesos.setPreferredSize(new Dimension(240, 270));
+        panelAccesos.setPreferredSize(new Dimension(250, 270));
 
-        JButton btnAccesoCli = new JButton("👥 Gestionar Clientes");
+        JButton btnAccesoCli = new JButton("Gestionar Clientes", AgronaIcons.crearIconoClientes(16, 16));
         btnAccesoCli.addActionListener(e -> mostrarPantalla(CARD_CLIENTES));
 
-        JButton btnAccesoProd = new JButton("🌿 Catálogo de Productos");
+        JButton btnAccesoProd = new JButton("Catálogo de Productos", AgronaIcons.crearIconoCatalogo(16, 16));
         btnAccesoProd.addActionListener(e -> mostrarPantalla(CARD_PRODUCTOS));
 
-        JButton btnAccesoGamas = new JButton("🏷️ Gamas de Producto");
+        JButton btnAccesoGamas = new JButton("Gamas de Producto", AgronaIcons.crearIconoGamas(16, 16));
         btnAccesoGamas.addActionListener(e -> mostrarPantalla(CARD_GAMAS));
 
-        JButton btnAccesoPed = new JButton("📦 Despacho de Pedidos");
+        JButton btnAccesoPed = new JButton("Despacho de Pedidos", AgronaIcons.crearIconoPedidos(16, 16));
         btnAccesoPed.addActionListener(e -> mostrarPantalla(CARD_PEDIDOS));
 
-        JButton btnAccesoPagos = new JButton("💳 Registro de Pagos");
+        JButton btnAccesoPagos = new JButton("Registro de Pagos", AgronaIcons.crearIconoPagos(16, 16));
         btnAccesoPagos.addActionListener(e -> mostrarPantalla(CARD_PAGOS));
 
-        JButton btnAccesoEmp = new JButton("👔 Directorio de Empleados");
+        JButton btnAccesoEmp = new JButton("Directorio de Empleados", AgronaIcons.crearIconoEmpleados(16, 16));
         btnAccesoEmp.addActionListener(e -> mostrarPantalla(CARD_EMPLEADOS));
 
-        JButton btnAccesoOfi = new JButton("🏢 Sedes y Oficinas");
+        JButton btnAccesoOfi = new JButton("Sedes y Oficinas", AgronaIcons.crearIconoOficinas(16, 16));
         btnAccesoOfi.addActionListener(e -> mostrarPantalla(CARD_OFICINAS));
 
         panelAccesos.add(btnAccesoCli);
@@ -534,31 +569,31 @@ public class DashboardFrame extends JFrame {
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setOpaque(true);
-        scrollPane.setBackground(new Color(0x0C, 0x12, 0x0E));
+        scrollPane.setBackground(new Color(0x16, 0x1F, 0x1A));
         if (scrollPane.getViewport() != null) {
             scrollPane.getViewport().setOpaque(true);
-            scrollPane.getViewport().setBackground(new Color(0x0C, 0x12, 0x0E));
+            scrollPane.getViewport().setBackground(new Color(0x16, 0x1F, 0x1A));
         }
 
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(true);
-        wrapper.setBackground(new Color(0x0C, 0x12, 0x0E));
+        wrapper.setBackground(new Color(0x16, 0x1F, 0x1A));
         wrapper.add(scrollPane, BorderLayout.CENTER);
 
         return wrapper;
     }
 
     /**
-     * Construye una tarjeta KPI con estética AGRONA: fondo oscuro (#1E2621),
-     * línea lateral izquierda de 6px en verde brillante, borde redondeado y tipografía nítida en blanco.
+     * Construye una tarjeta KPI con estética AGRONA: fondo forestal suave (#23302B),
+     * línea lateral izquierda de 5px en verde brillante, borde redondeado e ícono vectorial limpio.
      */
-    private JPanel crearTarjetaKpi(String titulo, JLabel valorLabel, String pie, Color colorAcento, String emoji) {
+    private JPanel crearTarjetaKpi(String titulo, JLabel valorLabel, String pie, Color colorAcento, Icon icon) {
         JPanel card = new JPanel(new BorderLayout(10, 8));
         card.setOpaque(true);
-        card.setBackground(new Color(0x1E, 0x26, 0x21));
+        card.setBackground(new Color(0x23, 0x30, 0x2B));
 
         Border lineaLateral = BorderFactory.createMatteBorder(0, 5, 0, 0, colorAcento);
-        Border contorno = new LineBorder(new Color(0x2D, 0x3D, 0x33), 1, true);
+        Border contorno = new LineBorder(new Color(0x38, 0x4D, 0x44), 1, true);
         Border padding = new EmptyBorder(14, 16, 14, 16);
 
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -566,11 +601,15 @@ public class DashboardFrame extends JFrame {
                 BorderFactory.createCompoundBorder(lineaLateral, padding)
         ));
 
-        // 1. Título e Icono superior
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        // 1. Título formal con ícono vectorial sin caracteres rotos
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         topPanel.setOpaque(false);
-        JLabel lblTitulo = new JLabel(emoji + " " + titulo);
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        if (icon != null) {
+            JLabel lblIcon = new JLabel(icon);
+            topPanel.add(lblIcon);
+        }
+        JLabel lblTitulo = new JLabel(titulo);
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblTitulo.setForeground(colorAcento);
         topPanel.add(lblTitulo);
 
@@ -592,6 +631,7 @@ public class DashboardFrame extends JFrame {
 
     /**
      * Actualiza las estadísticas asíncronamente con SwingWorker y animación de conteo suave.
+     * Cada consulta se aísla de forma independiente para garantizar la carga de datos reales.
      */
     public void actualizarEstadisticasDashboard() {
         new SwingWorker<int[], Void>() {
@@ -606,13 +646,38 @@ public class DashboardFrame extends JFrame {
 
                 try {
                     if (clienteUseCase != null) clientes = clienteUseCase.obtenerTodosLosClientes().size();
+                } catch (Exception ex) {
+                    System.err.println("Advertencia al sincronizar clientes: " + ex.getMessage());
+                }
+
+                try {
                     if (productoUseCase != null) productos = productoUseCase.obtenerTodosLosProductos().size();
+                } catch (Exception ex) {
+                    System.err.println("Advertencia al sincronizar productos: " + ex.getMessage());
+                }
+
+                try {
                     if (pedidoUseCase != null) pedidos = pedidoUseCase.obtenerTodosLosPedidos().size();
+                } catch (Exception ex) {
+                    System.err.println("Advertencia al sincronizar pedidos: " + ex.getMessage());
+                }
+
+                try {
                     if (pagoUseCase != null) pagos = pagoUseCase.listarPagos().size();
+                } catch (Exception ex) {
+                    System.err.println("Advertencia al sincronizar pagos: " + ex.getMessage());
+                }
+
+                try {
                     if (empleadoUseCase != null) empleados = empleadoUseCase.listarEmpleados().size();
+                } catch (Exception ex) {
+                    System.err.println("Advertencia al sincronizar empleados: " + ex.getMessage());
+                }
+
+                try {
                     if (oficinaUseCase != null) oficinas = oficinaUseCase.listarOficinas().size();
                 } catch (Exception ex) {
-                    System.err.println("Advertencia al sincronizar métricas: " + ex.getMessage());
+                    System.err.println("Advertencia al sincronizar oficinas: " + ex.getMessage());
                 }
 
                 return new int[]{clientes, productos, pedidos, pagos, empleados, oficinas};
@@ -631,15 +696,15 @@ public class DashboardFrame extends JFrame {
                     animarContador(lblTotalEmpleados, stats[4]);
                     animarContador(lblTotalOficinas, stats[5]);
 
-                    // Actualizar y animar el componente gráfico
+                    // Actualizar y animar el componente gráfico con etiquetas limpias
                     if (graficoBarras != null) {
                         List<GraficoBarrasAgrona.BarraDato> barras = new ArrayList<>();
-                        barras.add(new GraficoBarrasAgrona.BarraDato("Clientes Activos", stats[0], "👥", new Color(0x27, 0xAE, 0x60), new Color(0x2E, 0xCC, 0x71)));
-                        barras.add(new GraficoBarrasAgrona.BarraDato("Catálogo Variedades", stats[1], "🌿", new Color(0x84, 0xCC, 0x16), new Color(0xA3, 0xE6, 0x35)));
-                        barras.add(new GraficoBarrasAgrona.BarraDato("Pedidos Realizados", stats[2], "📦", new Color(0x05, 0x96, 0x69), new Color(0x34, 0xD3, 0x99)));
-                        barras.add(new GraficoBarrasAgrona.BarraDato("Transacciones Pago", stats[3], "💳", new Color(0x0D, 0x94, 0x88), new Color(0x14, 0xB8, 0xA6)));
-                        barras.add(new GraficoBarrasAgrona.BarraDato("Nómina Empleados", stats[4], "👔", new Color(0x15, 0x80, 0x3D), new Color(0x22, 0xC5, 0x5E)));
-                        barras.add(new GraficoBarrasAgrona.BarraDato("Sedes y Oficinas", stats[5], "🏢", new Color(0x65, 0xA3, 0x0D), new Color(0x84, 0xCC, 0x16)));
+                        barras.add(new GraficoBarrasAgrona.BarraDato("Clientes Activos", stats[0], "", new Color(0x27, 0xAE, 0x60), new Color(0x2E, 0xCC, 0x71)));
+                        barras.add(new GraficoBarrasAgrona.BarraDato("Catálogo Variedades", stats[1], "", new Color(0x84, 0xCC, 0x16), new Color(0xA3, 0xE6, 0x35)));
+                        barras.add(new GraficoBarrasAgrona.BarraDato("Pedidos Realizados", stats[2], "", new Color(0x05, 0x96, 0x69), new Color(0x34, 0xD3, 0x99)));
+                        barras.add(new GraficoBarrasAgrona.BarraDato("Transacciones Pago", stats[3], "", new Color(0x0D, 0x94, 0x88), new Color(0x14, 0xB8, 0xA6)));
+                        barras.add(new GraficoBarrasAgrona.BarraDato("Nómina Empleados", stats[4], "", new Color(0x15, 0x80, 0x3D), new Color(0x22, 0xC5, 0x5E)));
+                        barras.add(new GraficoBarrasAgrona.BarraDato("Sedes y Oficinas", stats[5], "", new Color(0x65, 0xA3, 0x0D), new Color(0x84, 0xCC, 0x16)));
                         graficoBarras.setDatos(barras);
                     }
 

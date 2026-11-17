@@ -62,7 +62,7 @@ public class PanelPago extends JPanel {
 
     private void initComponents() {
         // Título del módulo
-        JLabel lblTitulo = new JLabel("💳 Registro y Gestión de Pagos Comerciales");
+        JLabel lblTitulo = new JLabel("Registro y Gestión de Pagos Comerciales");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitulo.setForeground(new Color(0x2E, 0xCC, 0x71));
         lblTitulo.setBorder(new EmptyBorder(0, 0, 10, 0));

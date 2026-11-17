@@ -63,7 +63,7 @@ public class PanelEmpleado extends JPanel {
 
     private void initComponents() {
         // Título del módulo
-        JLabel lblTitulo = new JLabel("👔 Gestión del Personal y Empleados");
+        JLabel lblTitulo = new JLabel("Gestión del Personal y Empleados");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitulo.setForeground(new Color(0x2E, 0xCC, 0x71));
         lblTitulo.setBorder(new EmptyBorder(0, 0, 10, 0));
@@ -422,8 +422,14 @@ public class PanelEmpleado extends JPanel {
         if (ap1.isEmpty()) throw new BusinessRuleException("El primer apellido es obligatorio.");
         if (ext.isEmpty()) throw new BusinessRuleException("La extensión telefónica es obligatoria.");
         if (email.isEmpty()) throw new BusinessRuleException("El email es obligatorio.");
+        if (!email.contains("@") || !email.contains(".")) {
+            throw new BusinessRuleException("El email ingresado no tiene un formato válido (ejemplo: nombre@agrona.es).");
+        }
 
         int codigo = Integer.parseInt(codTexto);
+        if (codigo <= 0) {
+            throw new BusinessRuleException("El código de empleado debe ser un entero positivo mayor a cero.");
+        }
 
         // Oficina seleccionada
         ComboItem<String> ofiItem = cmbOficina.getSelectedIndex() >= 0 ? cmbOficina.getItemAt(cmbOficina.getSelectedIndex()) : null;
@@ -436,6 +442,9 @@ public class PanelEmpleado extends JPanel {
         ComboItem<Integer> jefeItem = cmbJefe.getSelectedIndex() >= 0 ? cmbJefe.getItemAt(cmbJefe.getSelectedIndex()) : null;
         Empleado jefe = null;
         if (jefeItem != null && jefeItem.value() != null) {
+            if (jefeItem.value().equals(codigo)) {
+                throw new BusinessRuleException("Un empleado no puede ser su propio jefe asignado.");
+            }
             jefe = Empleado.builder().codigoEmpleado(jefeItem.value()).build();
         }
 

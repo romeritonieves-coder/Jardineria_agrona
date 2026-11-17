@@ -127,11 +127,11 @@ public class GraficoBarrasAgrona extends JPanel {
         int ancho = getWidth();
         int alto = getHeight();
 
-        // 1. Fondo contenedor con estilo cristal oscuro
-        g2.setColor(new Color(0x16, 0x1E, 0x19));
+        // 1. Fondo contenedor con estilo cristal oscuro forestal suave (#23302B)
+        g2.setColor(new Color(0x23, 0x30, 0x2B));
         g2.fillRoundRect(0, 0, ancho, alto, 16, 16);
 
-        g2.setColor(new Color(0x28, 0x38, 0x2E));
+        g2.setColor(new Color(0x38, 0x4D, 0x44));
         g2.setStroke(new BasicStroke(1f));
         g2.drawRoundRect(0, 0, ancho - 1, alto - 1, 16, 16);
 
@@ -171,18 +171,19 @@ public class GraficoBarrasAgrona extends JPanel {
 
             // Resaltado de fila al hacer hover
             if (isHovered) {
-                g2.setColor(new Color(0x1F, 0x2C, 0x24));
+                g2.setColor(new Color(0x2C, 0x3B, 0x35));
                 g2.fillRoundRect(paddingH - 4, yFila, ancho - (paddingH * 2) + 8, espacioTotalFila, 8, 8);
             }
 
             // Etiqueta del ícono y nombre
             g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            g2.setColor(isHovered ? new Color(0x2E, 0xCC, 0x71) : new Color(0xF1, 0xF5, 0xF2));
-            String etiqueta = dato.getIcono() + "  " + dato.getEtiqueta();
+            g2.setColor(isHovered ? new Color(0x22, 0xC5, 0x5E) : new Color(0xF1, 0xF5, 0xF2));
+            String etiqueta = (dato.getIcono() == null || dato.getIcono().trim().isEmpty()) ?
+                    dato.getEtiqueta() : (dato.getIcono() + "  " + dato.getEtiqueta());
             g2.drawString(etiqueta, paddingH, yBarra + altoBarra - 6);
 
             // Fondo de la barra (track oscuro)
-            g2.setColor(new Color(0x20, 0x2A, 0x23));
+            g2.setColor(new Color(0x1B, 0x25, 0x20));
             g2.fill(new RoundRectangle2D.Float(xInicioBarra, yBarra, anchoDisponible, altoBarra, altoBarra, altoBarra));
 
             // Barra animada con degradado verde Agrona

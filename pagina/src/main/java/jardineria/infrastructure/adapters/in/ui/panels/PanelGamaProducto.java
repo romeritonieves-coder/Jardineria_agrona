@@ -62,7 +62,7 @@ public class PanelGamaProducto extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
 
-        JLabel lblTitulo = new JLabel("🏷️ Gestión de Gamas y Categorías de Productos");
+        JLabel lblTitulo = new JLabel("Gestión de Gamas y Categorías de Productos");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitulo.setForeground(new Color(0x2E, 0xCC, 0x71));
         lblTitulo.setBorder(new EmptyBorder(0, 0, 10, 0));
@@ -177,7 +177,7 @@ public class PanelGamaProducto extends JPanel {
 
         JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         panelBusqueda.setOpaque(false);
-        JLabel lblBuscar = new JLabel("🔍 Filtrar:");
+        JLabel lblBuscar = new JLabel("Filtrar:");
         lblBuscar.setFont(new Font("Segoe UI", Font.BOLD, 12));
         txtBuscar = new JTextField(18);
         txtBuscar.putClientProperty("JTextField.placeholderText", "Escribe para filtrar gamas...");
@@ -273,16 +273,18 @@ public class PanelGamaProducto extends JPanel {
                         g.getImagen() != null ? g.getImagen() : ""
                 });
             }
-        } catch (PersistenceException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error de base de datos al cargar las gamas:\n" + ex.getMessage(),
-                    "Error de Conexión",
-                    JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error inesperado al cargar las gamas:\n" + ex.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+            if (ex instanceof PersistenceException) {
+                JOptionPane.showMessageDialog(this,
+                        "Error de base de datos al cargar las gamas:\n" + ex.getMessage(),
+                        "Error de Conexión",
+                        JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Error inesperado al cargar las gamas:\n" + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -330,21 +332,23 @@ public class PanelGamaProducto extends JPanel {
             limpiarFormulario();
             cargarGamasEnTabla();
 
-        } catch (BusinessRuleException ex) {
-            JOptionPane.showMessageDialog(this,
-                    ex.getMessage(),
-                    "Regla de Negocio Incumplida",
-                    JOptionPane.WARNING_MESSAGE);
-        } catch (PersistenceException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error al guardar en la base de datos:\n" + ex.getMessage(),
-                    "Error de Persistencia",
-                    JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error inesperado: " + ex.getMessage(),
-                    "Error del Sistema",
-                    JOptionPane.ERROR_MESSAGE);
+            if (ex instanceof BusinessRuleException) {
+                JOptionPane.showMessageDialog(this,
+                        ex.getMessage(),
+                        "Regla de Negocio Incumplida",
+                        JOptionPane.WARNING_MESSAGE);
+            } else if (ex instanceof PersistenceException) {
+                JOptionPane.showMessageDialog(this,
+                        "Error al guardar en la base de datos:\n" + ex.getMessage(),
+                        "Error de Persistencia",
+                        JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Error inesperado: " + ex.getMessage(),
+                        "Error del Sistema",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -369,21 +373,23 @@ public class PanelGamaProducto extends JPanel {
             limpiarFormulario();
             cargarGamasEnTabla();
 
-        } catch (BusinessRuleException | ResourceNotFoundException ex) {
-            JOptionPane.showMessageDialog(this,
-                    ex.getMessage(),
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-        } catch (PersistenceException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error de base de datos al actualizar:\n" + ex.getMessage(),
-                    "Error de Persistencia",
-                    JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error inesperado: " + ex.getMessage(),
-                    "Error del Sistema",
-                    JOptionPane.ERROR_MESSAGE);
+            if (ex instanceof BusinessRuleException || ex instanceof ResourceNotFoundException) {
+                JOptionPane.showMessageDialog(this,
+                        ex.getMessage(),
+                        "Validación",
+                        JOptionPane.WARNING_MESSAGE);
+            } else if (ex instanceof PersistenceException) {
+                JOptionPane.showMessageDialog(this,
+                        "Error de base de datos al actualizar:\n" + ex.getMessage(),
+                        "Error de Persistencia",
+                        JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Error inesperado: " + ex.getMessage(),
+                        "Error del Sistema",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -415,26 +421,28 @@ public class PanelGamaProducto extends JPanel {
                 limpiarFormulario();
                 cargarGamasEnTabla();
 
-            } catch (BusinessRuleException ex) {
-                JOptionPane.showMessageDialog(this,
-                        ex.getMessage(),
-                        "Restricción de Integridad",
-                        JOptionPane.WARNING_MESSAGE);
-            } catch (ResourceNotFoundException ex) {
-                JOptionPane.showMessageDialog(this,
-                        ex.getMessage(),
-                        "No Encontrado",
-                        JOptionPane.WARNING_MESSAGE);
-            } catch (PersistenceException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Error al eliminar en la base de datos:\n" + ex.getMessage(),
-                        "Error de Persistencia",
-                        JOptionPane.ERROR_MESSAGE);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Error inesperado: " + ex.getMessage(),
-                        "Error del Sistema",
-                        JOptionPane.ERROR_MESSAGE);
+                if (ex instanceof BusinessRuleException) {
+                    JOptionPane.showMessageDialog(this,
+                            ex.getMessage(),
+                            "Restricción de Integridad",
+                            JOptionPane.WARNING_MESSAGE);
+                } else if (ex instanceof ResourceNotFoundException) {
+                    JOptionPane.showMessageDialog(this,
+                            ex.getMessage(),
+                            "No Encontrado",
+                            JOptionPane.WARNING_MESSAGE);
+                } else if (ex instanceof PersistenceException) {
+                    JOptionPane.showMessageDialog(this,
+                            "Error al eliminar en la base de datos:\n" + ex.getMessage(),
+                            "Error de Persistencia",
+                            JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Error inesperado: " + ex.getMessage(),
+                            "Error del Sistema",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }

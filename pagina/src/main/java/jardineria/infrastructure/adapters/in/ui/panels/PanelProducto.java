@@ -67,7 +67,7 @@ public class PanelProducto extends JPanel {
 
     private void initComponents() {
         // Título del módulo
-        JLabel lblTitulo = new JLabel("🌿 Catálogo de Productos e Inventario");
+        JLabel lblTitulo = new JLabel("Catálogo de Productos e Inventario");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitulo.setForeground(new Color(0x2E, 0xCC, 0x71));
         lblTitulo.setBorder(new EmptyBorder(0, 0, 10, 0));
@@ -415,6 +415,10 @@ public class PanelProducto extends JPanel {
         }
 
         String nombre = txtNombre.getText().trim();
+        if (nombre.isEmpty()) {
+            throw new BusinessRuleException("El nombre del producto es obligatorio.");
+        }
+
         String gamaStr = txtGama.getText().trim();
         if (gamaStr.isEmpty()) {
             throw new BusinessRuleException("La gama del producto es obligatoria.");
@@ -424,16 +428,27 @@ public class PanelProducto extends JPanel {
         int stock = 0;
         if (!txtStock.getText().trim().isEmpty()) {
             stock = Integer.parseInt(txtStock.getText().trim());
+            if (stock < 0) {
+                throw new BusinessRuleException("La cantidad en stock no puede ser negativa (debe ser >= 0).");
+            }
         }
 
-        BigDecimal precioVenta = null;
+        BigDecimal precioVenta;
         if (!txtPrecioVenta.getText().trim().isEmpty()) {
             precioVenta = new BigDecimal(txtPrecioVenta.getText().trim());
+            if (precioVenta.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BusinessRuleException("El precio de venta debe ser estrictamente mayor a 0.");
+            }
+        } else {
+            throw new BusinessRuleException("El precio de venta es obligatorio y debe ser mayor a 0.");
         }
 
         BigDecimal precioProveedor = null;
         if (!txtPrecioProveedor.getText().trim().isEmpty()) {
             precioProveedor = new BigDecimal(txtPrecioProveedor.getText().trim());
+            if (precioProveedor.compareTo(BigDecimal.ZERO) < 0) {
+                throw new BusinessRuleException("El precio de proveedor no puede ser negativo.");
+            }
         }
 
         return Producto.builder()

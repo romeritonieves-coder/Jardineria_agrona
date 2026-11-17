@@ -72,7 +72,7 @@ public class PanelCliente extends JPanel {
 
     private void initComponents() {
         // Título del módulo
-        JLabel lblTitulo = new JLabel("👥 Gestión de Clientes");
+        JLabel lblTitulo = new JLabel("Gestión de Clientes");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitulo.setForeground(new Color(0x2E, 0xCC, 0x71));
         lblTitulo.setBorder(new EmptyBorder(0, 0, 10, 0));
@@ -427,21 +427,35 @@ public class PanelCliente extends JPanel {
             throw new BusinessRuleException("El código del cliente es requerido.");
         }
         int codigo = Integer.parseInt(codTexto);
+        if (codigo <= 0) {
+            throw new BusinessRuleException("El código del cliente debe ser un número entero positivo mayor a cero.");
+        }
+
+        String nombre = txtNombre.getText().trim();
+        if (nombre.isEmpty()) {
+            throw new BusinessRuleException("El nombre del cliente o empresa es obligatorio.");
+        }
 
         BigDecimal limiteCredito = null;
         if (!txtLimiteCredito.getText().trim().isEmpty()) {
             limiteCredito = new BigDecimal(txtLimiteCredito.getText().trim());
+            if (limiteCredito.compareTo(BigDecimal.ZERO) < 0) {
+                throw new BusinessRuleException("El límite de crédito no puede ser un número negativo.");
+            }
         }
 
         Empleado repVentas = null;
         if (!txtRepVentas.getText().trim().isEmpty()) {
             int codRep = Integer.parseInt(txtRepVentas.getText().trim());
+            if (codRep <= 0) {
+                throw new BusinessRuleException("El código del representante de ventas debe ser mayor a cero.");
+            }
             repVentas = Empleado.builder().codigoEmpleado(codRep).build();
         }
 
         return Cliente.builder()
                 .codigoCliente(codigo)
-                .nombreCliente(txtNombre.getText().trim())
+                .nombreCliente(nombre)
                 .nombreContacto(txtNombreContacto.getText().trim())
                 .apellidoContacto(txtApellidoContacto.getText().trim())
                 .telefono(txtTelefono.getText().trim())
