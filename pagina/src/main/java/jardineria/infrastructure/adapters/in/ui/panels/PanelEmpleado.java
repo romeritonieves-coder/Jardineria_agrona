@@ -407,7 +407,6 @@ public class PanelEmpleado extends JPanel {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private Empleado construirEmpleadoDesdeFormulario() {
         String codTexto = txtCodigoEmpleado.getText().trim();
         String nom = txtNombre.getText().trim();

@@ -328,7 +328,6 @@ public class PanelPago extends JPanel {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private Pago construirPagoDesdeFormulario() {
         String idTrans = txtIdTransaccion.getText().trim();
         String fechaStr = txtFechaPago.getText().trim();

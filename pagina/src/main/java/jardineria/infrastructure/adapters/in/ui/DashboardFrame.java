@@ -739,32 +739,6 @@ public class DashboardFrame extends JFrame {
         timer.start();
     }
 
-    private JPanel createPlaceholderPanel(String tituloModulo) {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setOpaque(true);
-        panel.setBackground(UIManager.getColor("Panel.background"));
-        panel.setBorder(new EmptyBorder(30, 30, 30, 30));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.anchor = GridBagConstraints.CENTER;
-
-        JLabel titleLabel = new JLabel(tituloModulo);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        titleLabel.setForeground(new Color(0x2E, 0xCC, 0x71));
-        panel.add(titleLabel, gbc);
-
-        gbc.gridy++;
-        JLabel subtitleLabel = new JLabel("Módulo en construcción");
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        subtitleLabel.setForeground(new Color(0x94, 0xA3, 0x98));
-        panel.add(subtitleLabel, gbc);
-
-        return panel;
-    }
-
     public void registrarPantalla(JPanel panel, String cardName) {
         hacerComponentesOpacos(panel);
         Component old = registeredCards.get(cardName);
