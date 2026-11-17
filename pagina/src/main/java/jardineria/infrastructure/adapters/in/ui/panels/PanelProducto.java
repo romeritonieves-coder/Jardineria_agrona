@@ -5,6 +5,7 @@ import jardineria.application.exceptions.ResourceNotFoundException;
 import jardineria.application.ports.in.ProductoUseCasePort;
 import jardineria.domain.model.GamaProducto;
 import jardineria.domain.model.Producto;
+import jardineria.infrastructure.adapters.in.ui.DashboardFrame;
 import jardineria.infrastructure.adapters.out.persistence.PersistenceException;
 
 import javax.swing.*;
@@ -46,11 +47,14 @@ public class PanelProducto extends JPanel {
 
     public PanelProducto(ProductoUseCasePort productoUseCase) {
         this.productoUseCase = productoUseCase;
+        setOpaque(true);
+        setBackground(UIManager.getColor("Panel.background"));
         setLayout(new BorderLayout(10, 10));
         setBorder(new EmptyBorder(15, 15, 15, 15));
 
         initComponents();
-        cargarDatosTabla();
+        cargarProductosEnTabla();
+        DashboardFrame.hacerComponentesOpacos(this);
     }
 
     private void initComponents() {
@@ -62,6 +66,8 @@ public class PanelProducto extends JPanel {
 
         // Panel divisor
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitPane.setOpaque(true);
+        splitPane.setBackground(UIManager.getColor("Panel.background"));
         splitPane.setResizeWeight(0.38);
         splitPane.setContinuousLayout(true);
 
@@ -172,7 +178,18 @@ public class PanelProducto extends JPanel {
         tablaProductos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaProductos.getTableHeader().setReorderingAllowed(false);
 
-        // Al seleccionar fila, cargar datos en formulario
+        // 1. Interactividad en la Tabla: Clic del mouse para extraer datos y llenar el formulario
+        tablaProductos.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                int row = tablaProductos.getSelectedRow();
+                if (row != -1) {
+                    cargarProductoSeleccionado();
+                }
+            }
+        });
+
+        // Soporte adicional para selección con teclado (flechas arriba/abajo)
         tablaProductos.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tablaProductos.getSelectedRow() != -1) {
                 cargarProductoSeleccionado();
@@ -185,17 +202,20 @@ public class PanelProducto extends JPanel {
         // Botón de refrescar tabla
         JPanel panelTop = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnRecargar = new JButton("Recargar Catálogo");
-        btnRecargar.addActionListener(e -> cargarDatosTabla());
+        btnRecargar.addActionListener(e -> cargarProductosEnTabla());
         panelTop.add(btnRecargar);
         panel.add(panelTop, BorderLayout.NORTH);
 
         return panel;
     }
 
-    private void cargarDatosTabla() {
+    /**
+     * Consulta todos los productos a través de ProductoUseCasePort y llena la tabla del inventario.
+     */
+    public void cargarProductosEnTabla() {
         try {
             modeloTabla.setRowCount(0);
-            List<Producto> productos = productoUseCase.listarProductos();
+            List<Producto> productos = productoUseCase.obtenerTodosLosProductos();
             for (Producto p : productos) {
                 String gamaNombre = (p.getGama() != null && p.getGama().getGama() != null)
                         ? p.getGama().getGama()
@@ -220,10 +240,13 @@ public class PanelProducto extends JPanel {
         int selectedRow = tablaProductos.getSelectedRow();
         if (selectedRow == -1) return;
 
-        String codigoProducto = (String) modeloTabla.getValueAt(selectedRow, 0);
-        productoUseCase.obtenerProductoPorId(codigoProducto).ifPresent(p -> {
+        Object codObj = modeloTabla.getValueAt(selectedRow, 0);
+        if (codObj == null) return;
+
+        String codigoProducto = codObj.toString();
+        productoUseCase.obtenerProductoPorId(codigoProducto).ifPresentOrElse(p -> {
             txtCodigo.setText(p.getCodigoProducto());
-            txtCodigo.setEnabled(false); // No cambiar clave primaria en edición
+            txtCodigo.setEnabled(false); // Bloquear el campo Código de Producto para proteger la llave primaria
             txtNombre.setText(p.getNombre() != null ? p.getNombre() : "");
             txtGama.setText(p.getGama() != null && p.getGama().getGama() != null ? p.getGama().getGama() : "");
             txtDimensiones.setText(p.getDimensiones() != null ? p.getDimensiones() : "");
@@ -232,16 +255,27 @@ public class PanelProducto extends JPanel {
             txtStock.setText(p.getCantidadEnStock() != null ? p.getCantidadEnStock().toString() : "0");
             txtPrecioVenta.setText(p.getPrecioVenta() != null ? p.getPrecioVenta().toString() : "");
             txtPrecioProveedor.setText(p.getPrecioProveedor() != null ? p.getPrecioProveedor().toString() : "");
+        }, () -> {
+            // Carga de respaldo directa desde las celdas de la tabla
+            txtCodigo.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 0)));
+            txtCodigo.setEnabled(false);
+            txtNombre.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 1)));
+            txtGama.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 2)));
+            txtProveedor.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 3)));
+            txtStock.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 4)));
         });
     }
 
     private void accionGuardar() {
         try {
             Producto producto = construirProductoDesdeFormulario();
-            productoUseCase.registrarProducto(producto);
-            JOptionPane.showMessageDialog(this, "Producto guardado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            productoUseCase.crearProducto(producto);
+            JOptionPane.showMessageDialog(this,
+                    "¡Producto registrado exitosamente en el catálogo!\nCódigo: " + producto.getCodigoProducto() + " - " + producto.getNombre(),
+                    "Registro Exitoso",
+                    JOptionPane.INFORMATION_MESSAGE);
             limpiarFormulario();
-            cargarDatosTabla();
+            cargarProductosEnTabla();
         } catch (BusinessRuleException | ResourceNotFoundException | PersistenceException ex) {
             mostrarError("Regla de Negocio / Persistencia", ex.getMessage());
         } catch (NumberFormatException ex) {
@@ -252,16 +286,27 @@ public class PanelProducto extends JPanel {
     }
 
     private void accionActualizar() {
+        String codigo = txtCodigo.getText().trim();
+        if (codigo.isEmpty()) {
+            mostrarError("Validación", "Por favor selecciona un producto de la tabla para actualizar.");
+            return;
+        }
+
         try {
             Producto producto = construirProductoDesdeFormulario();
             productoUseCase.actualizarProducto(producto);
-            JOptionPane.showMessageDialog(this, "Producto actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "¡Producto actualizado exitosamente en el catálogo!\nCódigo: " + producto.getCodigoProducto() + " - " + producto.getNombre(),
+                    "Actualización Exitosa",
+                    JOptionPane.INFORMATION_MESSAGE);
             limpiarFormulario();
-            cargarDatosTabla();
-        } catch (BusinessRuleException | ResourceNotFoundException | PersistenceException ex) {
-            mostrarError("Error en Actualización", ex.getMessage());
+            cargarProductosEnTabla();
+        } catch (BusinessRuleException | ResourceNotFoundException ex) {
+            mostrarError("Regla de Negocio", ex.getMessage());
+        } catch (PersistenceException ex) {
+            mostrarError("Error de Persistencia", ex.getMessage());
         } catch (NumberFormatException ex) {
-            mostrarError("Formato Numérico Inválido", "Revisa que los valores numéricos ingresados sean válidos.");
+            mostrarError("Formato Numérico Inválido", "Revisa que los valores numéricos ingresados (stock, precios) sean válidos.");
         } catch (Exception ex) {
             mostrarError("Error Inesperado", ex.getMessage());
         }
@@ -270,12 +315,12 @@ public class PanelProducto extends JPanel {
     private void accionEliminar() {
         String codigo = txtCodigo.getText().trim();
         if (codigo.isEmpty()) {
-            mostrarError("Validación", "Selecciona o ingresa el código del producto que deseas eliminar.");
+            mostrarError("Validación", "Por favor selecciona en la tabla el producto que deseas eliminar.");
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Estás seguro de que deseas eliminar el producto '" + codigo + "'?",
+                "¿Está seguro de eliminar el producto '" + codigo + "'?",
                 "Confirmar Eliminación",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
@@ -283,11 +328,26 @@ public class PanelProducto extends JPanel {
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 productoUseCase.eliminarProducto(codigo);
-                JOptionPane.showMessageDialog(this, "Producto eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "Producto con código '" + codigo + "' eliminado exitosamente.",
+                        "Eliminación Exitosa",
+                        JOptionPane.INFORMATION_MESSAGE);
                 limpiarFormulario();
-                cargarDatosTabla();
-            } catch (BusinessRuleException | ResourceNotFoundException | PersistenceException ex) {
-                mostrarError("Error al Eliminar", ex.getMessage());
+                cargarProductosEnTabla();
+            } catch (BusinessRuleException ex) {
+                // ProductoService valida si el producto tiene pedidos
+                mostrarError("Restricción de Negocio", ex.getMessage());
+            } catch (PersistenceException ex) {
+                // Manejo de restricción de integridad por clave foránea (error 1451)
+                if (ex.getMessage() != null && (ex.getMessage().contains("foreign key") ||
+                        ex.getMessage().contains("1451") || ex.getMessage().contains("Cannot delete or update a parent row"))) {
+                    mostrarError("Restricción de Integridad",
+                            "No se puede eliminar este producto porque ya figura en pedidos registrados en el sistema.\nDebes eliminar primero los pedidos donde se incluye.");
+                } else {
+                    mostrarError("Error de Persistencia", ex.getMessage());
+                }
+            } catch (ResourceNotFoundException ex) {
+                mostrarError("No Encontrado", ex.getMessage());
             } catch (Exception ex) {
                 mostrarError("Error Inesperado", ex.getMessage());
             }

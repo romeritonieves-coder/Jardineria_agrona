@@ -13,8 +13,13 @@ public interface PedidoUseCasePort {
     Pedido crearPedido(Pedido pedido);
     Optional<Pedido> obtenerPedidoPorId(Integer codigoPedido);
     List<Pedido> listarPedidos();
+    default List<Pedido> obtenerTodosLosPedidos() {
+        return listarPedidos();
+    }
     List<Pedido> listarPedidosPorCliente(Integer codigoCliente);
     Pedido entregarPedido(Integer codigoPedido, LocalDate fechaEntrega);
     void cancelarPedido(Integer codigoPedido);
+    Pedido actualizarPedido(Pedido pedido);
+    void eliminarPedido(Integer codigoPedido);
 }
 

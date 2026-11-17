@@ -5,6 +5,7 @@ import jardineria.application.exceptions.ResourceNotFoundException;
 import jardineria.application.ports.in.ClienteUseCasePort;
 import jardineria.domain.model.Cliente;
 import jardineria.domain.model.Empleado;
+import jardineria.infrastructure.adapters.in.ui.DashboardFrame;
 import jardineria.infrastructure.adapters.out.persistence.PersistenceException;
 
 import javax.swing.*;
@@ -51,11 +52,14 @@ public class PanelCliente extends JPanel {
 
     public PanelCliente(ClienteUseCasePort clienteUseCase) {
         this.clienteUseCase = clienteUseCase;
+        setOpaque(true);
+        setBackground(UIManager.getColor("Panel.background"));
         setLayout(new BorderLayout(10, 10));
         setBorder(new EmptyBorder(15, 15, 15, 15));
 
         initComponents();
-        cargarDatosTabla();
+        cargarClientesEnTabla();
+        DashboardFrame.hacerComponentesOpacos(this);
     }
 
     private void initComponents() {
@@ -67,6 +71,8 @@ public class PanelCliente extends JPanel {
 
         // Panel divisor (Formulario a la izquierda, Tabla a la derecha)
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitPane.setOpaque(true);
+        splitPane.setBackground(UIManager.getColor("Panel.background"));
         splitPane.setResizeWeight(0.38);
         splitPane.setContinuousLayout(true);
 
@@ -175,7 +181,18 @@ public class PanelCliente extends JPanel {
         tablaClientes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaClientes.getTableHeader().setReorderingAllowed(false);
 
-        // Al seleccionar fila, cargar datos en formulario
+        // 1. Interactividad en la Tabla: Clic del mouse para extraer datos y llenar el formulario
+        tablaClientes.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                int row = tablaClientes.getSelectedRow();
+                if (row != -1) {
+                    cargarClienteSeleccionado();
+                }
+            }
+        });
+
+        // Soporte adicional para selección con teclado (flechas arriba/abajo)
         tablaClientes.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tablaClientes.getSelectedRow() != -1) {
                 cargarClienteSeleccionado();
@@ -188,17 +205,21 @@ public class PanelCliente extends JPanel {
         // Botón de refrescar tabla
         JPanel panelTop = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnRecargar = new JButton("Recargar Tabla");
-        btnRecargar.addActionListener(e -> cargarDatosTabla());
+        btnRecargar.addActionListener(e -> cargarClientesEnTabla());
         panelTop.add(btnRecargar);
         panel.add(panelTop, BorderLayout.NORTH);
 
         return panel;
     }
 
-    private void cargarDatosTabla() {
+    /**
+     * Consulta todos los clientes a través del puerto de entrada (ClienteUseCasePort)
+     * y puebla la tabla de la interfaz.
+     */
+    public void cargarClientesEnTabla() {
         try {
             modeloTabla.setRowCount(0);
-            List<Cliente> clientes = clienteUseCase.listarTodosLosClientes();
+            List<Cliente> clientes = clienteUseCase.obtenerTodosLosClientes();
             for (Cliente c : clientes) {
                 String contacto = (c.getNombreContacto() != null ? c.getNombreContacto() : "") + " " +
                                   (c.getApellidoContacto() != null ? c.getApellidoContacto() : "");
@@ -209,10 +230,10 @@ public class PanelCliente extends JPanel {
                 modeloTabla.addRow(new Object[]{
                         c.getCodigoCliente(),
                         c.getNombreCliente(),
-                        contacto.trim(),
-                        c.getTelefono(),
-                        c.getCiudad(),
-                        c.getPais(),
+                        contacto.trim().isEmpty() ? "-" : contacto.trim(),
+                        c.getTelefono() != null ? c.getTelefono() : "-",
+                        c.getCiudad() != null ? c.getCiudad() : "-",
+                        c.getPais() != null ? c.getPais() : "-",
                         c.getLimiteCredito() != null ? "$" + c.getLimiteCredito() : "$0.00",
                         repVentas
                 });
@@ -226,10 +247,13 @@ public class PanelCliente extends JPanel {
         int selectedRow = tablaClientes.getSelectedRow();
         if (selectedRow == -1) return;
 
-        Integer codigoCliente = (Integer) modeloTabla.getValueAt(selectedRow, 0);
-        clienteUseCase.obtenerClientePorId(codigoCliente).ifPresent(c -> {
+        Object codObj = modeloTabla.getValueAt(selectedRow, 0);
+        if (codObj == null) return;
+
+        Integer codigoCliente = Integer.valueOf(codObj.toString());
+        clienteUseCase.obtenerClientePorId(codigoCliente).ifPresentOrElse(c -> {
             txtCodigo.setText(String.valueOf(c.getCodigoCliente()));
-            txtCodigo.setEnabled(false); // No permitir cambiar clave primaria en edición
+            txtCodigo.setEnabled(false); // No permitir modificar la clave primaria en actualización
             txtNombre.setText(c.getNombreCliente() != null ? c.getNombreCliente() : "");
             txtNombreContacto.setText(c.getNombreContacto() != null ? c.getNombreContacto() : "");
             txtApellidoContacto.setText(c.getApellidoContacto() != null ? c.getApellidoContacto() : "");
@@ -244,16 +268,27 @@ public class PanelCliente extends JPanel {
             txtLimiteCredito.setText(c.getLimiteCredito() != null ? c.getLimiteCredito().toString() : "");
             txtRepVentas.setText(c.getEmpleadoRepVentas() != null && c.getEmpleadoRepVentas().getCodigoEmpleado() != null
                     ? String.valueOf(c.getEmpleadoRepVentas().getCodigoEmpleado()) : "");
+        }, () -> {
+            // Carga directa de respaldo basada en los valores presentes en la tabla
+            txtCodigo.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 0)));
+            txtCodigo.setEnabled(false);
+            txtNombre.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 1)));
+            txtTelefono.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 3)));
+            txtCiudad.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 4)));
+            txtPais.setText(String.valueOf(modeloTabla.getValueAt(selectedRow, 5)));
         });
     }
 
     private void accionGuardar() {
         try {
-            Cliente cliente = construirClienteDesdeFormulario();
-            clienteUseCase.registrarCliente(cliente);
-            JOptionPane.showMessageDialog(this, "Cliente guardado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            Cliente nuevoCliente = construirClienteDesdeFormulario();
+            clienteUseCase.crearCliente(nuevoCliente);
+            JOptionPane.showMessageDialog(this,
+                    "¡Cliente registrado con éxito en la base de datos!\nCódigo: " + nuevoCliente.getCodigoCliente() + " - " + nuevoCliente.getNombreCliente(),
+                    "Registro Exitoso",
+                    JOptionPane.INFORMATION_MESSAGE);
             limpiarFormulario();
-            cargarDatosTabla();
+            cargarClientesEnTabla();
         } catch (BusinessRuleException | ResourceNotFoundException | PersistenceException ex) {
             mostrarError("Regla de Negocio / Persistencia", ex.getMessage());
         } catch (NumberFormatException ex) {
@@ -264,16 +299,27 @@ public class PanelCliente extends JPanel {
     }
 
     private void accionActualizar() {
+        String codigoTexto = txtCodigo.getText().trim();
+        if (codigoTexto.isEmpty()) {
+            mostrarError("Validación", "Por favor selecciona un cliente de la tabla para actualizar.");
+            return;
+        }
+
         try {
             Cliente cliente = construirClienteDesdeFormulario();
             clienteUseCase.actualizarCliente(cliente);
-            JOptionPane.showMessageDialog(this, "Cliente actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "¡Cliente actualizado exitosamente en MySQL!\nCódigo: " + cliente.getCodigoCliente() + " - " + cliente.getNombreCliente(),
+                    "Actualización Exitosa",
+                    JOptionPane.INFORMATION_MESSAGE);
             limpiarFormulario();
-            cargarDatosTabla();
-        } catch (BusinessRuleException | ResourceNotFoundException | PersistenceException ex) {
-            mostrarError("Error en Actualización", ex.getMessage());
+            cargarClientesEnTabla();
+        } catch (BusinessRuleException | ResourceNotFoundException ex) {
+            mostrarError("Regla de Negocio", ex.getMessage());
+        } catch (PersistenceException ex) {
+            mostrarError("Error en Persistencia", ex.getMessage());
         } catch (NumberFormatException ex) {
-            mostrarError("Formato Numérico Inválido", "Revisa que los valores numéricos ingresados sean válidos.");
+            mostrarError("Formato Numérico Inválido", "Revisa que los valores numéricos ingresados (código, límite crédito, representante) sean válidos.");
         } catch (Exception ex) {
             mostrarError("Error Inesperado", ex.getMessage());
         }
@@ -282,12 +328,12 @@ public class PanelCliente extends JPanel {
     private void accionEliminar() {
         String codigoTexto = txtCodigo.getText().trim();
         if (codigoTexto.isEmpty()) {
-            mostrarError("Validación", "Selecciona o ingresa el código del cliente que deseas eliminar.");
+            mostrarError("Validación", "Por favor selecciona en la tabla el cliente que deseas eliminar.");
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Estás seguro de que deseas eliminar al cliente con código " + codigoTexto + "?",
+                "¿Está seguro de eliminar este cliente (Código: " + codigoTexto + ")?",
                 "Confirmar Eliminación",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
@@ -296,11 +342,23 @@ public class PanelCliente extends JPanel {
             try {
                 int codigo = Integer.parseInt(codigoTexto);
                 clienteUseCase.eliminarCliente(codigo);
-                JOptionPane.showMessageDialog(this, "Cliente eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "Cliente con código " + codigo + " eliminado exitosamente.",
+                        "Eliminación Exitosa",
+                        JOptionPane.INFORMATION_MESSAGE);
                 limpiarFormulario();
-                cargarDatosTabla();
-            } catch (BusinessRuleException | ResourceNotFoundException | PersistenceException ex) {
-                mostrarError("Error al Eliminar", ex.getMessage());
+                cargarClientesEnTabla();
+            } catch (PersistenceException ex) {
+                // Manejo amigable de clave foránea referenciada en pedidos/pagos
+                if (ex.getMessage() != null && (ex.getMessage().contains("foreign key") ||
+                        ex.getMessage().contains("1451") || ex.getMessage().contains("Cannot delete or update a parent row"))) {
+                    mostrarError("Restricción de Integridad",
+                            "No se puede eliminar este cliente porque tiene pedidos o pagos registrados en el sistema.\nDebes eliminar primero sus pedidos y pagos asociados.");
+                } else {
+                    mostrarError("Error en Persistencia", ex.getMessage());
+                }
+            } catch (BusinessRuleException | ResourceNotFoundException ex) {
+                mostrarError("Regla de Negocio", ex.getMessage());
             } catch (NumberFormatException ex) {
                 mostrarError("Código Inválido", "El código debe ser un valor entero numérico.");
             } catch (Exception ex) {

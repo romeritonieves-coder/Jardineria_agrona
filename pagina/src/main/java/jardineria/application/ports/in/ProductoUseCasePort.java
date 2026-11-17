@@ -10,9 +10,15 @@ import java.util.Optional;
  */
 public interface ProductoUseCasePort {
     Producto registrarProducto(Producto producto);
+    default Producto crearProducto(Producto producto) {
+        return registrarProducto(producto);
+    }
     Producto actualizarProducto(Producto producto);
     Optional<Producto> obtenerProductoPorId(String codigoProducto);
     List<Producto> listarProductos();
+    default List<Producto> obtenerTodosLosProductos() {
+        return listarProductos();
+    }
     List<Producto> listarProductosPorGama(String gama);
     Producto actualizarStock(String codigoProducto, int nuevoStock);
     void eliminarProducto(String codigoProducto);
