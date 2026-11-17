@@ -3,11 +3,13 @@ package jardineria.infrastructure.adapters.in.ui.panels;
 import jardineria.application.exceptions.BusinessRuleException;
 import jardineria.application.exceptions.ResourceNotFoundException;
 import jardineria.application.ports.in.PedidoUseCasePort;
+import jardineria.application.ports.in.ReporteUseCasePort;
 import jardineria.domain.model.Cliente;
 import jardineria.domain.model.DetallePedido;
 import jardineria.domain.model.Pedido;
 import jardineria.domain.model.Producto;
 import jardineria.infrastructure.adapters.in.ui.DashboardFrame;
+import jardineria.infrastructure.adapters.out.export.ReporteExcelAdapter;
 import jardineria.infrastructure.adapters.out.persistence.PersistenceException;
 
 import javax.swing.*;
@@ -28,6 +30,7 @@ import java.util.List;
 public class PanelPedido extends JPanel {
 
     private final PedidoUseCasePort pedidoUseCase;
+    private ReporteUseCasePort reporteUseCase;
 
     // Componentes del formulario (Cabecera)
     private JTextField txtCodigoPedido;
@@ -57,7 +60,12 @@ public class PanelPedido extends JPanel {
     private DefaultTableModel modeloTabla;
 
     public PanelPedido(PedidoUseCasePort pedidoUseCase) {
+        this(pedidoUseCase, null);
+    }
+
+    public PanelPedido(PedidoUseCasePort pedidoUseCase, ReporteUseCasePort reporteUseCase) {
         this.pedidoUseCase = pedidoUseCase;
+        this.reporteUseCase = reporteUseCase;
         setOpaque(true);
         setBackground(UIManager.getColor("Panel.background"));
         setLayout(new BorderLayout(10, 10));
@@ -254,14 +262,58 @@ public class PanelPedido extends JPanel {
         JScrollPane scrollTabla = new JScrollPane(tablaPedidos);
         panel.add(scrollTabla, BorderLayout.CENTER);
 
-        // Botón superior para refrescar tabla
-        JPanel panelTop = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Botones superiores: Refrescar y Exportar Pedidos a Excel
+        JPanel panelTop = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
         JButton btnRecargar = new JButton("Recargar Pedidos");
         btnRecargar.addActionListener(e -> cargarPedidosEnTabla());
+
+        JButton btnExportar = new JButton("Exportar a Excel (.xlsx)");
+        btnExportar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnExportar.addActionListener(e -> accionExportarExcel());
+
         panelTop.add(btnRecargar);
+        panelTop.add(btnExportar);
         panel.add(panelTop, BorderLayout.NORTH);
 
         return panel;
+    }
+
+    private void accionExportarExcel() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Guardar Historial de Pedidos en Excel");
+        fileChooser.setSelectedFile(new java.io.File("reporte_pedidos.xlsx"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Hojas de cálculo Excel (*.xlsx)", "xlsx"));
+
+        int userSelection = fileChooser.showSaveDialog(this);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            java.io.File fileToSave = fileChooser.getSelectedFile();
+            if (!fileToSave.getName().toLowerCase().endsWith(".xlsx")) {
+                fileToSave = new java.io.File(fileToSave.getAbsolutePath() + ".xlsx");
+            }
+
+            try {
+                if (reporteUseCase != null) {
+                    reporteUseCase.exportarPedidos(fileToSave);
+                } else {
+                    new ReporteExcelAdapter().exportarPedidosExcel(pedidoUseCase.obtenerTodosLosPedidos(), fileToSave);
+                }
+
+                int opcion = JOptionPane.showConfirmDialog(this,
+                        "¡Reporte de pedidos exportado exitosamente!\n\nArchivo guardado en:\n" + fileToSave.getAbsolutePath() +
+                        "\n\n¿Deseas abrir el archivo ahora?",
+                        "Exportación Exitosa",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                if (opcion == JOptionPane.YES_OPTION && java.awt.Desktop.isDesktopSupported()) {
+                    try {
+                        java.awt.Desktop.getDesktop().open(fileToSave);
+                    } catch (Exception ignored) {}
+                }
+            } catch (Exception ex) {
+                mostrarError("Error en Exportación", "No fue posible generar el archivo Excel: " + ex.getMessage());
+            }
+        }
     }
 
     /**
